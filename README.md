@@ -1,4 +1,6 @@
 # ![ResourcefulHands [W.I.P]](https://file.garden/Z9BrE5QDFXkNPYaw/rhlogobanner_trimmed_big.png "ResourcefulHands [W.I.P]")
+# Note: I am no longer working on this project
+<br>
 
 #### __Contributors:__
  - triggered0idiot \[creator\]
