@@ -23,18 +23,20 @@ namespace ResourcefulHands;
 [BepInPlugin(GUID, "Resourceful Hands", "0.9.70")] // Resourceful Hands
 public class Plugin : BaseUnityPlugin
 {
-    public const string GUID = "triggeredidiot.wkd.resourcefulhands";
+    public const string GUID = "monksilly.resourcefulhands";
 
+    public GameObject? ofHolder;
+    
     private static AssetBundle? _assets;
     public static AssetBundle? Assets
     {
         get
         {
-            if (_assets != null) return _assets;
+            if (_assets) return _assets;
             
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string resourceName = $"ResourcefulHands.rh_assets.bundle";
-            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
+            var assembly = Assembly.GetExecutingAssembly();
+            const string resourceName = $"ResourcefulHands.rh_assets.bundle";
+            using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream != null)
                 _assets = AssetBundle.LoadFromStream(stream);
 
@@ -67,10 +69,10 @@ public class Plugin : BaseUnityPlugin
             return false;
         }
     }
-    
-    public Harmony? Harmony { get; private set; }
 
-    internal static void RefreshTextures() // TODO: refresh without fucky manipulation tatics?
+    private Harmony? Harmony { get; set; }
+
+    private static void RefreshTextures() // TODO: refresh without fucky manipulation tatics?
     {
         RHSpriteManager.ClearSpriteCache();
         
@@ -107,8 +109,8 @@ public class Plugin : BaseUnityPlugin
             img.overrideSprite = img.overrideSprite;
         }
     }
-    
-    internal static void RefreshSounds()
+
+    private static void RefreshSounds()
     {
         // do some manipulation to the variables to trigger the harmony patches to replace them
         List<AudioSource> allAudioSources = FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
@@ -125,11 +127,12 @@ public class Plugin : BaseUnityPlugin
     // TODO: remove jank
     internal static int targetFps = 60;
     public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-    public static bool IsMainThread => System.Threading.Thread.CurrentThread.ManagedThreadId == mainThreadId;
-    internal static int mainThreadId;
+    public static bool IsMainThread => System.Threading.Thread.CurrentThread.ManagedThreadId == _mainThreadId;
+    private static int _mainThreadId;
     public void Awake()
     {
-        mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        InitOfficialCosmeticSystem();
+        _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         
         Log = Logger;
         Instance = this;
@@ -143,9 +146,10 @@ public class Plugin : BaseUnityPlugin
         Harmony.PatchAll();
 
         RHLog.Debug("Hooking loaded event...");
-        bool hasLoadedIntro = false;
+        var hasLoadedIntro = false;
         SceneManager.sceneLoaded += (scene, mode) =>
         {
+            InitOfficialCosmeticSystem();
             targetFps = Application.targetFrameRate;
             RHLog.Debug("Evaluating newly loaded scene...");
             if(!scene.name.ToLower().Contains("intro") && !hasLoadedIntro)
@@ -171,12 +175,12 @@ public class Plugin : BaseUnityPlugin
                     CoroutineDispatcher.RunOnMainThread(() => //create isolated local context
                     {
                         var spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
-                        float lastTick = Time.time;
+                        var lastTick = Time.time;
                         
                         // currently the old tick speed was too slow and caused 
                         // sprites to flicker when spawned in (which i was trying to fix with InstantiatePatches)
                         // so i've reduced it until we have a better solution
-                        float tickSpace = 1.0f/60.0f;
+                        const float tickSpace = 1.0f/60.0f;
                         
                         Coroutine? c = null;
                         void CreateCoroutine()
@@ -237,6 +241,18 @@ public class Plugin : BaseUnityPlugin
         RHLog.Message("Resourceful Hands has loaded!");
     }
 
+    private void InitOfficialCosmeticSystem()
+    {
+        if (ofHolder) return;
+
+        ofHolder = new GameObject()
+        {
+            name = "RHCosmeticSystem"
+        };
+        ofHolder.AddComponent<OF_CosmeticPage>();
+        DontDestroyOnLoad(ofHolder);
+    }
+    
     internal static void RefreshAllAssets(bool refreshOriginalAssets = true)
     {
         RefreshTextures();
@@ -245,4 +261,4 @@ public class Plugin : BaseUnityPlugin
             OriginalAssetTracker.ClearAll();
     }
 }
-// amongus
+// amongus sungus

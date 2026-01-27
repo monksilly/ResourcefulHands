@@ -2,12 +2,32 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
+        <AssemblyName>monksilly.ResourcefulHands</AssemblyName>
+        <Product>Resourceful Hands</Product>
+        <Version>0.9.70</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <AssemblyVersion>0.9.70</AssemblyVersion>
+        <RestoreAdditionalProjectSources>
+          https://api.nuget.org/v3/index.json;
+          https://nuget.bepinex.dev/v3/index.json;
+          https://nuget.samboy.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+        <RootNamespace>ResourcefulHands</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+      <PackageReference Include="BepInEx.Core" Version="5.*" />
+      <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+      <PackageReference Include="UnityEngine.Modules" Version="2022.3.32" IncludeAssets="compile" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    </ItemGroup>
+  
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DebugType>full</DebugType>
     </PropertyGroup>
@@ -440,4 +460,8 @@
       </Reference>
     </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /Y /D &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\White Knuckle\BepInEx\plugins\ResourcefulHands\&quot;" />
+  </Target>
+  
 </Project>

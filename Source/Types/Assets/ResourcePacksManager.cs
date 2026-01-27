@@ -5,8 +5,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using BepInEx;
-using HarmonyLib;
-using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -52,6 +50,11 @@ internal static class OriginalAssetTracker
 
 public static class ResourcePacksManager
 {
+    
+    private static TaskCompletionSource<bool> _initialLoadSource = new();
+    public static Task InitialLoadTask => _initialLoadSource.Task;
+
+    
     // allows old packs to work with the new sprite names
     public static Dictionary<string, string> OldNewSpriteNames
     {
@@ -76,28 +79,16 @@ public static class ResourcePacksManager
             };
         }
     }
-    public static Dictionary<string, string> OldNewSoundNames
-    {
-        get
+    public static Dictionary<string, string> OldNewSoundNames =>
+        new()
         {
-            if (Plugin.IsDemo)
-            {
-                return new Dictionary<string, string>
-                {
-                    { "", "" },
-                };
-            }
-            return new Dictionary<string, string>
-            {
-                { "", "" },
-            };
-        }
-    }
-    
+            { "", "" },
+        };
+
     public static bool IsUsingRHPacksFolder => LoadedPacks.Exists(p => p.IsConfigFolderPack);
     
     public static List<ResourcePack> LoadedPacks { get; internal set; } = [];
-    public static ResourcePack[] ActivePacks => (LoadedPacks ?? []).Where(pack => pack is { IsActive: true }).ToArray();
+    public static ResourcePack[] ActivePacks => (LoadedPacks).Where(pack => pack is { IsActive: true }).ToArray();
     public static bool HasPacksChanged = true;
 
     public static ResourcePack? GetPackWithID(string id)
@@ -169,7 +160,7 @@ public static class ResourcePacksManager
     
     public static Texture2D? GetTextureFromPacks(string textureName, bool nullOnFail = false)
     {
-        if (isReloading)
+        if (_isReloading)
         {
             if (nullOnFail) return null;
             var originalTexture = OriginalAssetTracker.GetTexture(textureName);
@@ -212,7 +203,7 @@ public static class ResourcePacksManager
     
     public static AudioClip? GetSoundFromPacks(string soundName)
     {
-        if (isReloading)
+        if (_isReloading)
         {
             var originalSound = OriginalAssetTracker.GetSound(soundName);
             return originalSound ? originalSound : null;
@@ -237,8 +228,7 @@ public static class ResourcePacksManager
     {
         int packIndex = ResourcePacksManager.LoadedPacks.FindIndex(p => p == pack);
 
-        int nextPackIndex = 0;
-        nextPackIndex = isUp
+        var nextPackIndex = isUp
             ? Math.Clamp(packIndex - 1, 0, ResourcePacksManager.LoadedPacks.Count - 1)
             : Math.Clamp(packIndex + 1, 0, ResourcePacksManager.LoadedPacks.Count - 1);
 
@@ -257,7 +247,7 @@ public static class ResourcePacksManager
     
     internal static void SaveDisabledPacks()
     {
-        if (ResourcePacksManager.isReloading) return;
+        if (ResourcePacksManager._isReloading) return;
 
         List<string> disabledPacks = [];
         foreach (var pack in LoadedPacks)
@@ -270,7 +260,7 @@ public static class ResourcePacksManager
     }
     internal static void LoadDisabledPacks()
     {
-        if (ResourcePacksManager.isReloading) return;
+        if (ResourcePacksManager._isReloading) return;
 
         RHConfig.PackPrefs.Load();
         string[] disabledPacks = RHConfig.PackPrefs.DisabledPacks;
@@ -286,7 +276,7 @@ public static class ResourcePacksManager
     
     internal static void SavePackOrder()
     {
-        if (ResourcePacksManager.isReloading) return;
+        if (ResourcePacksManager._isReloading) return;
         
         string[] currentPacksState = new string[LoadedPacks.Count];
         for (int i = 0; i < LoadedPacks.Count; i++)
@@ -300,7 +290,7 @@ public static class ResourcePacksManager
     }
     internal static void LoadPackOrder()
     {
-        if (ResourcePacksManager.isReloading) return;
+        if (ResourcePacksManager._isReloading) return;
 
         RHConfig.PackPrefs.Load();
         string[] previousPacksState = RHConfig.PackPrefs.PackOrder;
@@ -334,13 +324,13 @@ public static class ResourcePacksManager
         SaveDisabledPacks();
     }
 
-    private static bool isReloading = false;
+    private static bool _isReloading;
     
     // Reloads every pack
     // wait till ready is needed for commands to not act weird (i.e. allows new command's changes to be applied after old command finishes reloading)
     public static bool ReloadPacks(bool waitTillReady = false, Action? callback = null)
     {
-        if (isReloading && !waitTillReady)
+        if (_isReloading && !waitTillReady)
         {
             RHLog.Warning("Tried to reload while already reloading?");
             return false;
@@ -349,10 +339,10 @@ public static class ResourcePacksManager
         RHLog.Debug("Dispatching pack reloader task...");
         Task.Run(async () =>
         {
-            if (isReloading && waitTillReady)
+            if (_isReloading && waitTillReady)
             {
                 RHLog.Debug("Waiting for previous reload...");
-                while (isReloading)
+                while (_isReloading)
                     await Task.Delay(125);
                 RHLog.Debug("Reloading...");
             }
@@ -366,7 +356,7 @@ public static class ResourcePacksManager
     
     internal static async Task ReloadPacks_Internal()
     {
-        if (isReloading) return;
+        if (_isReloading) return;
         
         HasPacksChanged = false;
         if (LoadedPacks.Count != 0)
@@ -375,7 +365,7 @@ public static class ResourcePacksManager
             Save();
         }
         
-        isReloading = true;
+        _isReloading = true;
         LoadedPacks.Clear();
         RHLog.Info($"Expanding zips in {RHConfig.PacksFolder}...");
         string[] zipPaths = Directory.GetFiles(RHConfig.PacksFolder, "*.zip", SearchOption.TopDirectoryOnly);
@@ -384,7 +374,7 @@ public static class ResourcePacksManager
             try
             {
                 RHLog.Info($"Expanding resource pack zip: {zipPath}");
-                bool isTopLevelZip = true;
+                bool isTopLevelZip;
                 using (ZipArchive zip = ZipFile.OpenRead(zipPath))
                     isTopLevelZip = zip.GetEntry("info.json") != null;
 
@@ -445,7 +435,7 @@ public static class ResourcePacksManager
 
         await CoroutineDispatcher.RunOnMainThreadAndWait(() =>
         {
-            isReloading = false; // no longer reloading resource packs, we can load and save orders,ect
+            _isReloading = false; // no longer reloading resource packs, we can load and save orders,ect
             
             RHLog.Info("Re-ordering to user order...");
             LoadPackOrder();
@@ -456,8 +446,10 @@ public static class ResourcePacksManager
             Plugin.RefreshAllAssets(false);
 
             // just incase
-            if (UI_RHPacksList.Instance != null)
+            if (UI_RHPacksList.Instance)
                 UI_RHPacksList.Instance?.BuildList();
+
+            _initialLoadSource.TrySetResult(true);
         });
     }
 }

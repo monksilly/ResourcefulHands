@@ -17,12 +17,12 @@ public static class MiscUtils
     public static string CleanString(string str)
     {
         // remove all directly invalid characters
-        char[] invalidChars = Path.GetInvalidFileNameChars();
+        var invalidChars = Path.GetInvalidFileNameChars();
         foreach (var invalidChar in invalidChars)
             str = str.Replace(invalidChar.ToString(), "");
 
         // limit chars to the ascii range so no weird characters like ∞
-        StringBuilder strBuild = new StringBuilder();
+        var strBuild = new StringBuilder();
         foreach (char c in str)
         {
             if(c > 127) continue;

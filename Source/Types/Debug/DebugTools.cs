@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
@@ -11,11 +10,11 @@ namespace ResourcefulHands;
 public class RHDebugTools : MonoBehaviour
 {
     public static RHDebugTools? Instance;
-    public static bool isOn = false;
+    public static bool isOn;
 
-    private static List<AudioClip> _playingClips = new List<AudioClip>();
+    private static readonly List<AudioClip> PlayingClips = [];
     private GUIStyle _style = GUIStyle.none;
-    private bool _enableNextFrame = false;
+    private bool _enableNextFrame;
 
     internal static void Create()
     {
@@ -29,18 +28,23 @@ public class RHDebugTools : MonoBehaviour
     }
     private static IEnumerator _queueSound(AudioClip clip, bool force)
     {
-        if(!force && _playingClips.Contains(clip))
+        if(!force && PlayingClips.Contains(clip))
             yield break;
         
-        _playingClips.Add(clip);
+        PlayingClips.Add(clip);
         yield return new WaitForSeconds(1.0f);
         if(clip)
-            _playingClips.Remove(clip);
+            PlayingClips.Remove(clip);
     }
     
     public void Awake()
     {
-        Instance = this;
+        // Keep only one instance
+        if (!Instance)
+            Instance = this;
+        else
+            Destroy(this);
+        
         if (RHConfig.AlwaysDebug)
             isOn = true;
         
@@ -51,15 +55,15 @@ public class RHDebugTools : MonoBehaviour
             normal = new GUIStyleState { textColor = Color.white }
         };
 
-        SceneManager.sceneUnloaded += arg0 =>
+        SceneManager.sceneUnloaded += _ =>
         {
             _enableNextFrame |= isOn;
             isOn = false;
         };
-        SceneManager.sceneLoaded += (arg0, mode) =>
+        SceneManager.sceneLoaded += (_, mode) =>
         {
             if (mode != LoadSceneMode.Single) return;
-            _playingClips.Clear();
+            PlayingClips.Clear();
             _enableNextFrame |= isOn;
             isOn = false;
         };
@@ -73,12 +77,12 @@ public class RHDebugTools : MonoBehaviour
         
         GUI.contentColor = Color.white;
         GUILayout.Label("Recent sounds:", _style);
-        for (int i = _playingClips.Count - 1; i >= 0; i--)
+        for (int i = PlayingClips.Count - 1; i >= 0; i--)
         {
-            if (_playingClips[i] == null)
-                _playingClips.RemoveAt(i);
+            if (PlayingClips[i] == null)
+                PlayingClips.RemoveAt(i);
         }
-        foreach (var clip in _playingClips)
+        foreach (var clip in PlayingClips)
             GUILayout.Label(clip.name, _style);
         
         GUI.contentColor = prevColor;
@@ -99,7 +103,7 @@ public static class DEBUG_InstantiatePatches
 {
     private static void OnInstantiated(UnityEngine.Object result, UnityEngine.Object original)
     {
-        if (result == null) return;
+        if (!result) return;
         
         void PatchObject(UnityEngine.Object obj)
         {
@@ -116,15 +120,15 @@ public static class DEBUG_InstantiatePatches
         {
             case GameObject go:
             {
-                Component[] comps = go.GetComponentsInChildren<Component>();
-                foreach (Component comp in comps)
+                var comps = go.GetComponentsInChildren<Component>();
+                foreach (var comp in comps)
                     PatchObject(comp);
                 break;
             }
             case Component component:
             {
-                Component[] comps = component.GetComponentsInChildren<Component>();
-                foreach (Component comp in comps)
+                var comps = component.GetComponentsInChildren<Component>();
+                foreach (var comp in comps)
                     PatchObject(comp);
                 break;
             }
@@ -207,8 +211,8 @@ public static class DEBUG_AudioSourcePatches
     {
         if(!RHDebugTools.isOn) return;
         
-        if(src != null) clip = src.clip;
-        if(clip == null) return;
+        if(!clip) return;
+        if(src) clip = src.clip;
         
         RHDebugTools.QueueSound(clip);
     }

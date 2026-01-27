@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HarmonyLib;
 using Sirenix.Utilities;
 using UnityEngine;
@@ -17,69 +18,48 @@ public static class InstantiatePatches
 {
     private static void OnInstantiated(UnityEngine.Object result, UnityEngine.Object original)
     {
-        if (result == null) return;
-        
-        void PatchObject(UnityEngine.Object obj)
-        {
-            RHLog.Debug($"Attempting to patch {obj} [{obj.GetType().FullName}]");
-            switch (obj)
-            {
-                case Image img:
-                    RHLog.Debug($"Patched Image {img}");
-                    img.sprite = img.sprite;
-                    break;
-                case SpriteRenderer sr:
-                    RHLog.Debug($"Patched SpriteRenderer {sr}");
-                    SpriteRendererPatches.Patch(sr);
-                    break;
-                case AudioSource audio:
-                    RHLog.Debug($"Patched AudioSource {audio}");
-                    AudioSourcePatches.SwapClip(audio);
-                    break;
-                case Material mat:
-                    RHLog.Debug($"Patched Material {mat}");
-                    mat.mainTexture = mat.mainTexture;
-                    break;
-            }
-        }
-        
+        if (!result) return;
+
         RHLog.Debug($"Object spawned: {result.GetType().Name} (from {original?.name ?? "unknown"})");
 
-        void RunParent(Transform parent)
+        // Use Task.Run ONLY for logic/identification, NOT for API calls
+        Task.Run(() => 
         {
-            Component[] comps = parent.GetComponentsInChildren<Component>();
-            foreach (Component comp in comps)
-                PatchObject(comp);
-        }
-        switch (result)
+            if (result is GameObject go)
+            {
+                // Unity allows getting components on background threads in SOME versions, 
+                // but for stability, we grab the array on Main and process logic on Background.
+                RHDispatcher.RunOnMainThread(() => {
+                    var comps = go.GetComponentsInChildren<Component>(true);
+                    ProcessComponents(comps);
+                });
+            }
+        });
+    }
+    
+    private static void ProcessComponents(Component[] comps)
+    {
+        // Process the list in parallel to find what needs replacing
+        System.Threading.Tasks.Parallel.ForEach(comps, (comp) =>
         {
-            case GameObject go:
+            // 1. Logic: Decide WHAT to replace (Background Thread)
+            // 2. Resource Loading: Load your custom texture from disk/bundle (Background Thread)
+        
+            if (comp is SpriteRenderer sr)
             {
-                Transform parent = go.transform.parent;
-                if (parent != null)
-                    RunParent(parent);
-                else
-                {
-                    Component[] comps = go.GetComponentsInChildren<Component>();
-                    foreach (Component comp in comps)
-                        PatchObject(comp);
-                }
-                break;
+                // 3. Application: Push the actual assignment back to Main Thread
+                RHDispatcher.RunOnMainThread(() => {
+                    SpriteRendererPatches.Patch(sr); 
+                });
             }
-            case Component component:
+            else if (comp is Image img)
             {
-                Transform parent = component.gameObject.transform.parent;
-                if (parent != null)
-                    RunParent(parent);
-                else
-                {
-                    Component[] comps = component.GetComponentsInChildren<Component>();
-                    foreach (Component comp in comps)
-                        PatchObject(comp);
-                }
-                break;
+                RHDispatcher.RunOnMainThread(() => {
+                    img.sprite = img.sprite; // Trigger refresh
+                });
             }
-        }
+            // Add other types...
+        });
     }
     
     [HarmonyPostfix]
@@ -121,26 +101,28 @@ public static class ImagePatches
     [HarmonyPostfix]
     public static void Getter_sprite_Postfix(Image __instance, ref Sprite __result) {
         // TODO: fix left/right ui sprites not working
-        if (__result == null)
+        if (!__result)
             return;
         
         if (__result.texture.name == "hand-sheet")
         {
+            // Temporary
+            return;
             // cache the original texture
             OriginalAssetTracker.textures.TryAdd(__result.texture.name, __result.texture);
 
-            string spriteTexName = __result.texture.name;
-            int handId = string.Equals(__instance.gameObject.name, "Interact_L", StringComparison.CurrentCultureIgnoreCase) ? 0 : 1;
+            var spriteTexName = __result.texture.name;
+            var handId = string.Equals(__instance.gameObject.name, "Interact_L", StringComparison.CurrentCultureIgnoreCase) ? 0 : 1;
             
-            string prefix = RHSpriteManager.GetHandPrefix(handId);
-            string newSpriteTexName = spriteTexName;
+            var prefix = RHSpriteManager.GetHandPrefix(handId);
+            var newSpriteTexName = spriteTexName;
             
             // if there isnt a pack associated to a l/r hand then dont replace the l/r hand
             if ((RHConfig.PackPrefs.GetLeftHandPack() == null && handId == 0)||
                 (RHConfig.PackPrefs.GetRightHandPack() == null && handId == 1))
             {
-                Sprite? originalSpr = OriginalAssetTracker.GetFirstSpriteFromTextureName(spriteTexName);
-                if(originalSpr != null)
+                var originalSpr = OriginalAssetTracker.GetFirstSpriteFromTextureName(spriteTexName);
+                if(originalSpr is not null)
                     __result = originalSpr;
                 return;
             }
@@ -159,11 +141,11 @@ public static class ImagePatches
             if (myPack != null && !(myPack.Textures.ContainsKey(newSpriteTexName) || myPack.Textures.ContainsKey(spriteTexName)))
             {
                 Sprite? originalSpr = OriginalAssetTracker.GetFirstSpriteFromTextureName(spriteTexName);
-                if(originalSpr != null)
+                if(originalSpr is not null)
                     __result = originalSpr;
                 return;
             }
-            if (newSpr != null && newSpr != __result)
+            if (newSpr is not null && newSpr != __result)
             {
                 __result = newSpr;
                 return;
@@ -177,19 +159,19 @@ public static class ImagePatches
 [HarmonyPatch(typeof(SpriteRenderer))]
 public static class SpriteRendererPatches
 {
-    private static bool dontPatch = false; // prevents loopbacks
+    private static bool dontPatch; // prevents loopbacks
 
     public static void Patch(SpriteRenderer sr)
     {
-        if(sr == null) return;
-        Sprite s = sr.sprite;
+        if(!sr) return;
+        var s = sr.sprite;
         
-        if(s == null) return;
+        if(!s) return;
         dontPatch = true;
-        Sprite nS = RHSpriteManager.GetReplacementSpriteForRenderer(sr) ?? s;
+        var nS = RHSpriteManager.GetReplacementSpriteForRenderer(sr) ?? s;
         
         // stop the setter from being patched
-        if(s == null) return;
+        if(!s) return;
         dontPatch = true;
         
         sr.sprite = nS;
@@ -199,6 +181,9 @@ public static class SpriteRendererPatches
     [HarmonyPostfix]
     private static void Setter_Postfix(SpriteRenderer __instance, ref Sprite value)
     {
+        // Temporary
+        return;
+        
         if (dontPatch)
         { dontPatch = false; return; }
         
