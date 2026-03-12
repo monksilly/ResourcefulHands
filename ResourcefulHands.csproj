@@ -17,7 +17,9 @@
         <RootNamespace>ResourcefulHands</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
+    <Import Project="UserConfig.props" Condition="Exists('UserConfig.props')" />
+  
+  <ItemGroup>
       <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
       <PackageReference Include="BepInEx.Core" Version="5.*" />
       <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
@@ -460,8 +462,22 @@
       </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
+      <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
+    </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /Y /D &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\White Knuckle\BepInEx\plugins\ResourcefulHands\&quot;" />
+    <Message Text="Copying build to BepInEx plugins..." Importance="high" />
+    <Copy
+            SourceFiles="$(TargetPath)"
+            DestinationFolder="$(BepInExPath)"
+            SkipUnchangedFiles="true"
+    />
+  </Target>
+
+  <Target Name="CheckBepInExPath" BeforeTargets="PostBuild">
+    <Warning Condition="!Exists('$(BepInExPath)')" Text="BepInExPath is not set or invalid. Mod will not be copied to game folder. Check UserConfig.props!" />
   </Target>
   
 </Project>

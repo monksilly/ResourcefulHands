@@ -24,6 +24,8 @@ public class OF_CosmeticPage : MonoBehaviour
     private UI_TabGroup.Tab? RHTab;
 
     public List<Cosmetic_Base> RHHands = [];
+ 
+    public bool IsReady { get; private set; } = false;
     
     private void Awake()
     {
@@ -99,7 +101,10 @@ public class OF_CosmeticPage : MonoBehaviour
         FindCosmeticsTemplate();
         PrepareCosmeticPage();
         PrepareCosmetics();
-        ApplyCosmetics();
+        
+        IsReady = true;
+        RHLog.Info("RH Cosmetics are ready.");
+        // ApplyCosmetics();
     }
     
     private void FindCosmeticsTemplate()
@@ -216,9 +221,11 @@ public class OF_CosmeticPage : MonoBehaviour
         
         // cosmeticsMenu?.cosmeticPages.Add(cosmeticPage);
     }
-    
-    private void PrepareCosmetics()
+
+    public void PrepareCosmetics()
     {
+        ResourcefulHandsPatches.CL_CosmeticManager_Patches.ScanVanillaCosmeticsInPlugins();
+        
         if (RHHands.Count > 0) return;
 
         foreach (var resourcePack in ResourcePacksManager.LoadedPacks)
@@ -269,6 +276,7 @@ public class OF_CosmeticPage : MonoBehaviour
             
             
             Dictionary<string, Cosmetic_HandItem.SwapSprite> swapsDict = [];
+            Dictionary<string, Cosmetic_HandItem.InteractSwap> interactsDict = [];
             RHLog.Debug("Loading swaps");
             foreach (var resSources in resourcePack.Textures)
             {
@@ -310,15 +318,62 @@ public class OF_CosmeticPage : MonoBehaviour
                         swapsDict.TryAdd(newSwap.spriteName, newSwap);
                     }
                 }
+
+                if (resSources.Key.Contains("hand-sheet"))
+                {
+                    var splices = DynamicHandSlicer.SliceSheet(resSources.Value, 4, 4);
+                    
+                    // Grabbing the first 4 (1st row) because of lack of support in OF system
+                    for (int i = 0; i < 4; i++)
+                    {
+                        splices.TryGetValue(new Vector2(0, i), out var tTexture);
+                        var newSprite = TextureCompositor.TextureToSprite(tTexture!)!;
+                        var tName = "";
+                        
+                        
+                        // Horrible, replace ASAP
+                        switch (i)
+                        {
+                            case 0:
+                                tName = "interact-hand-open";
+                                break;
+                            case 1:
+                                tName = "interact-hand-grabbed";
+                                break;
+                            case 2:
+                                tName = "interact-hand-point";
+                                break;
+                            case 3:
+                                tName = "interact-hand-item";
+                                break;
+                        }
+
+                        var newSwap = new Cosmetic_HandItem.InteractSwap()
+                        {
+                            replacementSprite = newSprite,
+                            replacementSpriteName = tName,
+                            spriteName =  tName,
+                        };
+                        
+                        interactsDict.TryAdd(newSwap.spriteName, newSwap);
+                    }
+                }
             }
 
+            newCosmetic.cosmeticData.swapSprites ??= [];
+            newCosmetic.cosmeticData.interactSwaps ??= [];
+            
             foreach (var swap in swapsDict.Keys)
             {
                 RHLog.Debug(swap);
             }
+
+            foreach (var interact in interactsDict.Keys)
+            {
+                RHLog.Debug(interact);
+            }
             newCosmetic.cosmeticData.swapSprites.AddRange(swapsDict.Values);
-            
-            
+            newCosmetic.cosmeticData.interactSwaps.AddRange(interactsDict.Values);
             
             RHHands.Add(newCosmetic);
             
@@ -362,8 +417,6 @@ public class OF_CosmeticPage : MonoBehaviour
             internalList.AddRange(RHHands);
             cosmeticsField.SetValue(cosmeticPage, internalList);
         }
-        
-        
 
         try
         {
@@ -374,8 +427,8 @@ public class OF_CosmeticPage : MonoBehaviour
             RHLog.Error($"FillCosmeticPage failed: {e.Message}");
         }
     }
-    
-    private void InjectIntoCosmeticManager()
+
+    public void InjectIntoCosmeticManager()
     {
         try
         {

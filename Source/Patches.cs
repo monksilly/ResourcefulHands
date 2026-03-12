@@ -18,6 +18,8 @@ public static class InstantiatePatches
 {
     private static void OnInstantiated(UnityEngine.Object result, UnityEngine.Object original)
     {
+        // TODO: Temporary block
+        return;
         if (!result) return;
 
         RHLog.Debug($"Object spawned: {result.GetType().Name} (from {original?.name ?? "unknown"})");
@@ -39,6 +41,8 @@ public static class InstantiatePatches
     
     private static void ProcessComponents(Component[] comps)
     {
+        // TODO: Temporary block
+        return;
         // Process the list in parallel to find what needs replacing
         System.Threading.Tasks.Parallel.ForEach(comps, (comp) =>
         {
@@ -106,7 +110,7 @@ public static class ImagePatches
         
         if (__result.texture.name == "hand-sheet")
         {
-            // Temporary
+            // TODO: Temporary block
             return;
             // cache the original texture
             OriginalAssetTracker.textures.TryAdd(__result.texture.name, __result.texture);
@@ -163,6 +167,8 @@ public static class SpriteRendererPatches
 
     public static void Patch(SpriteRenderer sr)
     {
+        // TODO: Temporary block
+        return;
         if(!sr) return;
         var s = sr.sprite;
         
@@ -181,7 +187,7 @@ public static class SpriteRendererPatches
     [HarmonyPostfix]
     private static void Setter_Postfix(SpriteRenderer __instance, ref Sprite value)
     {
-        // Temporary
+        // TODO: Temporary block
         return;
         
         if (dontPatch)
@@ -199,6 +205,9 @@ public static class AudioSourcePatches
 
     private static void Cache(AudioClip? clip)
     {
+        // TODO: Temporary block
+        return;
+        
         if(clip == null) return;
         //bool isModified = clip.name.EndsWith(Plugin.ModifiedStr);
         OriginalAssetTracker.sounds.TryAdd(clip.name, clip);
@@ -243,6 +252,8 @@ public static class AudioSourcePatches
     [HarmonyPrefix]
     private static void PlayOneShot_ClipAndVolume_Postfix(AudioSource __instance, ref AudioClip __0)
     {
+        // TODO: Temporary block
+        return;
         // if the original is already cached this will just silently fail
         Cache(__instance.clip);
         
@@ -254,6 +265,8 @@ public static class AudioSourcePatches
     // Shared logic
     internal static void SwapClip(AudioSource src)
     {
+        // TODO: Temporary block
+        return;
         if(dontPatch)
         { dontPatch = false; return; }
         
@@ -278,6 +291,8 @@ public static class MaterialPatches
     
     internal static void Cache(Texture2D? tex)
     {
+        // TODO: Temporary block
+        return;
         //bool isModified = tex.name.EndsWith(Plugin.ModifiedStr);
         if(tex == null) return;
         OriginalAssetTracker.textures.TryAdd(tex.name, tex);
@@ -287,6 +302,8 @@ public static class MaterialPatches
     [HarmonyPrefix]
     public static void SetTexture_Prefix(Material __instance, string name, ref Texture value)
     {
+        // TODO: Temporary block
+        return;
         if (value == null) return;
         if (value is not Texture2D texture2D) return;
         
@@ -301,6 +318,8 @@ public static class MaterialPatches
     [HarmonyPrefix]
     public static void SetTexture_Prefix(Material __instance, int nameID, ref Texture value)
     {   
+        // TODO: Temporary block
+        return;
         if (value == null) return;
         if (value is not Texture2D texture2D) return;
         
@@ -314,6 +333,8 @@ public static class MaterialPatches
 
     public static void PatchMainTexture(Material __instance, ref Texture __result)
     {
+        // TODO: Temporary block
+        return;
         if(__instance == null) return;
         if(!__instance.HasTexture(MainTex)) return;
         
@@ -332,6 +353,8 @@ public static class MaterialPatches
     [HarmonyPostfix]
     private static void Setter_Postfix(Material __instance, ref Texture value)
     {
+        // TODO: Temporary block
+        return;
         if (dontPatch)
         { dontPatch = false; return; }
         
@@ -346,6 +369,8 @@ public static class RendererPatches
 
     public static void Patch(ref Material material)
     {
+        // TODO: Temporary block
+        return;
         if(material == null) return;
         if(!material.HasProperty(MainTex)) return;
         

@@ -5,7 +5,7 @@
  - galfar-coder _(galfar.exe)_
 
 #### __Contributors:__
- - triggered0idiot \[creator\]
+ - triggered0idiot \[*original creator*\]
  - Collin8000
  - notTamion
 
@@ -13,7 +13,8 @@
 
 ResourcefulHands works both on the current early access build and the demo as of writing.
 
-## For more information see the [official wiki](https://github.com/monksilly/ResourcefulHands/wiki) !
+## For more information see the [official wiki](https://github.com/monksilly/ResourcefulHands/wiki)!
+### For information on how to contribute to the mod see [this wiki page](https://github.com/monksilly/ResourcefulHands/wiki/Contributing)
 
-This project has been taken over from [triggered0idiot](https://github.com/triggered0idiot) with his full permission and acknowledgement.<br>
-It's now maintained and being developed by the MonkSilly Team.
+> This project has been taken over from [triggered0idiot](https://github.com/triggered0idiot) with his full permission and acknowledgement.<br>
+> It's now maintained and being developed by the MonkSilly Team.

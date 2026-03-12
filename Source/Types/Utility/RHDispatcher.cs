@@ -36,5 +36,5 @@ public class RHDispatcher : MonoBehaviour
         }
     }
 
-    public static Coroutine StartStaticCoroutine(IEnumerator routine) => _instance.StartCoroutine(routine);
+    public static Coroutine? StartStaticCoroutine(IEnumerator routine) => _instance?.StartCoroutine(routine);
 }

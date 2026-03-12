@@ -353,6 +353,22 @@ public static class ResourcePacksManager
         });
         return true;
     }
+
+    private static bool HasLoadedOnInit;
+
+    public static async Task InitLoad()
+    {
+        RHLog.Info("Initializing loading...");
+        if (HasLoadedOnInit)
+        {
+            RHLog.Warning("Tried to Init while it's already initialized?");
+            return;
+        }
+
+        _isReloading = false;
+        await ReloadPacks_Internal();
+        RHLog.Info("Initialized loading.");
+    }
     
     internal static async Task ReloadPacks_Internal()
     {

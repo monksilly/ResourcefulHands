@@ -131,6 +131,7 @@ public class Plugin : BaseUnityPlugin
     private static int _mainThreadId;
     public void Awake()
     {
+        Task.Run(ResourcePacksManager.InitLoad);
         InitOfficialCosmeticSystem();
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         
