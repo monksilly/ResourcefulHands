@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>monksilly.ResourcefulHands</AssemblyName>
         <Product>Resourceful Hands</Product>
-        <Version>0.9.70</Version>
+        <Version>0.10.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
@@ -467,17 +467,17 @@
       <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
     </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="CheckBepInExPath" BeforeTargets="PostBuild">
+    <Warning Condition="!Exists('$(BepInExPath)')" Text="BepInExPath is not set or invalid. Mod will not be copied to game folder. Check UserConfig.props!" />
+  </Target>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="Exists('$(BepInExPath)')">
     <Message Text="Copying build to BepInEx plugins..." Importance="high" />
     <Copy
             SourceFiles="$(TargetPath)"
             DestinationFolder="$(BepInExPath)"
             SkipUnchangedFiles="true"
     />
-  </Target>
-
-  <Target Name="CheckBepInExPath" BeforeTargets="PostBuild">
-    <Warning Condition="!Exists('$(BepInExPath)')" Text="BepInExPath is not set or invalid. Mod will not be copied to game folder. Check UserConfig.props!" />
   </Target>
   
 </Project>
