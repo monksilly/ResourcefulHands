@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "White Knuckle": {
+      "commandName": "Executable",
+      "executablePath": "$(WhiteKnuckleDir)White Knuckle.exe"
+    }
+  }
+}

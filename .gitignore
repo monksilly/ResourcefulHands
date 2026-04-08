@@ -9,3 +9,10 @@ riderModule.iml
 *.DotSettings.*
 /ResourcefulHands.csproj.DotSettings
 UserConfig.props
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
