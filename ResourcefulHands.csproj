@@ -13,6 +13,7 @@
       https://nuget.bepinex.dev/v3/index.json;
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
     <RootNamespace>ResourcefulHands</RootNamespace>
     <WhiteKnuckleDir>Defined in ResourcefulHands.csproj.user!!</WhiteKnuckleDir> <!-- Ensure that this has BepInEx installed -->
     <CopyToBepInExPluginsDir>true</CopyToBepInExPluginsDir>
