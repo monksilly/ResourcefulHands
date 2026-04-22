@@ -9,3 +9,5 @@ riderModule.iml
 *.DotSettings.*
 /ResourcefulHands.csproj.DotSettings
 UserConfig.props
+/CHANGELOG.md
+/cliff.toml

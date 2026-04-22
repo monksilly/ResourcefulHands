@@ -103,7 +103,7 @@ public static class RHLog
     /// </summary>
     public static class Player
     {
-        private static void Message(string message) => CommandConsole.Log(Prefix + message, true);
+        private static void Message(string message) => CommandConsole.Log(Prefix + message);
         
         /// Sends an info message to the game console
         public static void Info(string message) => Message(message);

@@ -52,17 +52,17 @@ public static class RHCommands
         CommandConsole.RemoveCommand(ToggleDebug);
         CommandConsole.RemoveCommand(DumpPackInfo);
 
-        ccInst.RegisterCommand(DumpCommand, DumpAllToPack, false);
-        ccInst.RegisterCommand(ReloadCommand, ReloadPacks, false);
-        ccInst.RegisterCommand(MoveCommand, MovePacks, false);
-        ccInst.RegisterCommand(ListCommand, ListPacks, false);
-        ccInst.RegisterCommand(EnableCommand, EnablePack, false);
-        ccInst.RegisterCommand(DisableCommand, DisablePack, false);
-        ccInst.RegisterCommand(EnableAllCommand, EnableAll, false);
-        ccInst.RegisterCommand(DisableAllCommand, DisableAll, false);
-        ccInst.RegisterCommand(ToggleDebug, (args) => { RHDebugTools.isOn = !RHDebugTools.isOn; }, false);
+        CommandConsole.AddCommand(DumpCommand, DumpAllToPack, false);
+        CommandConsole.AddCommand(ReloadCommand, ReloadPacks, false);
+        CommandConsole.AddCommand(MoveCommand, MovePacks, false);
+        CommandConsole.AddCommand(ListCommand, ListPacks, false);
+        CommandConsole.AddCommand(EnableCommand, EnablePack, false);
+        CommandConsole.AddCommand(DisableCommand, DisablePack, false);
+        CommandConsole.AddCommand(EnableAllCommand, EnableAll, false);
+        CommandConsole.AddCommand(DisableAllCommand, DisableAll, false);
+        CommandConsole.AddCommand(ToggleDebug, (args) => { RHDebugTools.isOn = !RHDebugTools.isOn; }, false);
         // yes im being lazy because its a debug command
-        ccInst.RegisterCommand(DumpPackInfo, (args) =>
+        CommandConsole.AddCommand(DumpPackInfo, (args) =>
         {
             ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error);
             if (pack == null)
@@ -90,9 +90,9 @@ public static class RHCommands
             RHLog.Player.Info($"gameVer: {pack.gameVersionString}");
             RHLog.Player.Info($"frmtVer: {pack.formatVersion}");
         }, false);
-        ccInst.RegisterCommand(AssignHandPack, AssignHandResourcePack, false);
-        ccInst.RegisterCommand(ClearHandPack, ClearHandResourcePack, false);
-        ccInst.RegisterCommand(ListHandPacks, ListHandResourcePack, false);
+        CommandConsole.AddCommand(AssignHandPack, AssignHandResourcePack, false);
+        CommandConsole.AddCommand(ClearHandPack, ClearHandResourcePack, false);
+        CommandConsole.AddCommand(ListHandPacks, ListHandResourcePack, false);
     }
     
     private static void MovePacks(string[] args)

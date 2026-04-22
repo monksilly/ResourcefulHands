@@ -14,12 +14,33 @@ public class ResourcefulHandsPatches
     [HarmonyPatch(typeof(CL_CosmeticManager))]
     public static class CL_CosmeticManager_Patches
     {
+        
+        [HarmonyPostfix]
+        [HarmonyPatch("ScanForCosmetics")]
+        public static void ScanForCosmeticsPostfix()
+        {
+            string cosmeticFolderPath = BepInEx.Paths.PluginPath;
+            Debug.Log("Scanning For Hand Cosmetics Scattered Across BepInEx Plugins...");
+            
+            var methodInfo = AccessTools.Method(typeof(CL_CosmeticManager), "CreateHandCosmetics");
+            var actionDelegate = AccessTools.MethodDelegate<Action<string, List<string>>>(methodInfo);
+            
+            var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
+                cosmeticFolderPath, 
+                actionDelegate, 
+                "cosmetic-handitem-settings.json"
+            );
+            Debug.Log("Finished Scanning For Hand Cosmetics From BepInEx Plugins: " + scanResult?.ToString());
+            
+        }
+        
         [HarmonyPostfix]
         [HarmonyPatch(nameof(CL_CosmeticManager.Initialize))]
-        public static void Postfix()
+        public static void PostfixInitialize()
         {
+            // TODO: Remove completely, as unneeded
             // Trigger the Vanilla Scan with a delay to ensure lists are allocated
-            StaticCoroutine.Start(DelayedVanillaScan());
+            // StaticCoroutine.Start(DelayedVanillaScan());
             
             if (OF_CosmeticPage.instance && OF_CosmeticPage.instance.IsReady)
             {
@@ -41,7 +62,8 @@ public class ResourcefulHandsPatches
                 if (loadedList != null && loadedList.Count > 0)
                 {
                     RHLog.Info($"[VanillaScan] Manager is ready with {loadedList.Count} items. Starting scan...");
-                    ScanVanillaCosmeticsInPlugins();
+                    // TODO: Remove this
+                    // ScanVanillaCosmeticsInPlugins();
                     yield break;
                 }
                 timer += 0.2f;
@@ -50,7 +72,7 @@ public class ResourcefulHandsPatches
             RHLog.Error("[VanillaScan] Timed out waiting for CL_CosmeticManager!");
         }
 
-        public static void ScanVanillaCosmeticsInPlugins()
+        public static Dictionary<string, string>? GetVanillaCosmeticsInPlugins()
         {
             string pluginPath = BepInEx.Paths.PluginPath;
             RHLog.Info($"[VanillaScan] Searching {pluginPath}...");
@@ -58,7 +80,7 @@ public class ResourcefulHandsPatches
             if (!Directory.Exists(pluginPath))
             {
                 RHLog.Error($"[VanillaScan] Directory does not exist: {pluginPath}");
-                return;
+                return null;
             }
 
             // Use AllDirectories to ensure we find it even if nested
@@ -70,19 +92,24 @@ public class ResourcefulHandsPatches
             catch (Exception ex)
             {
                 RHLog.Error($"[VanillaScan] Failed to read filesystem: {ex.Message}");
-                return;
+                return null;
             }
 
             RHLog.Info($"[VanillaScan] Found {jsonFiles.Length} potential vanilla hand JSONs.");
 
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            
             foreach (string jsonPath in jsonFiles)
             {
                 // Get the directory containing the JSON
-                string folder = Path.GetDirectoryName(jsonPath);
+                string folder = Path.GetDirectoryName(jsonPath)!;
                 RHLog.Info($"[VanillaScan] Attempting load from: {folder}");
         
-                LoadVanillaHand(folder, jsonPath);
+                //LoadVanillaHand(folder, jsonPath);
+                result[jsonPath] = folder;
             }
+
+            return result;
         }
         
         private static void LoadVanillaHand(string subdir, string jsonPath)

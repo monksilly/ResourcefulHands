@@ -224,7 +224,8 @@ public class OF_CosmeticPage : MonoBehaviour
 
     public void PrepareCosmetics()
     {
-        ResourcefulHandsPatches.CL_CosmeticManager_Patches.ScanVanillaCosmeticsInPlugins();
+        // TODO: REMOVE!!!
+        // ResourcefulHandsPatches.CL_CosmeticManager_Patches.ScanVanillaCosmeticsInPlugins();
         
         if (RHHands.Count > 0) return;
 
