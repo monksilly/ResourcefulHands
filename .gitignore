@@ -11,3 +11,11 @@ riderModule.iml
 UserConfig.props
 /CHANGELOG.md
 /cliff.toml
+
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
