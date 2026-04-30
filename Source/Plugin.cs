@@ -25,7 +25,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string GUID = "monksilly.resourcefulhands";
     public const string NAME = "Resourceful Hands";
-    public const string VERSION = "0.9.70";
+    public const string VERSION = "0.11.0";
 
     public GameObject? ofHolder;
     
