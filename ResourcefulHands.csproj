@@ -77,17 +77,17 @@
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\BepInEx.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\BepInEx.Harmony.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.Harmony.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="BepInEx.Preloader">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\BepInEx.Preloader.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.Preloader.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
@@ -137,37 +137,37 @@
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="HarmonyXInterop">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\HarmonyXInterop.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/HarmonyXInterop.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="Mono.Cecil">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\Mono.Cecil.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\Mono.Cecil.Mdb.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Mdb.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\Mono.Cecil.Pdb.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Pdb.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Rocks.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/MonoMod.RuntimeDetour.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Bepinex\MonoMod.Utils.dll</HintPath>
+      <HintPath>$(WhiteKnuckleDir)Bepinex/MonoMod.Utils.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
@@ -735,6 +735,7 @@
   <ItemGroup>
     <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
     <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
+    <Content Include="ResourcefulHands.csproj.user" />
   </ItemGroup>
 
 </Project>
