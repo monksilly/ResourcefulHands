@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Newtonsoft.Json;
-using ResourcefulHands.Core;
+using ResourcefulHands.Assets;
+using ResourcefulHands.Systems;
 using UnityEngine;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Core;
 
 public static class RHConfig
 {
@@ -114,10 +114,6 @@ public static class RHConfig
     internal static void InitConfigs()
     {
         ModLogger.Info("Initialising configs...");
-        
-        ModLogger.Debug("Checking packs folder...");
-        if (!Directory.Exists(PacksFolder))
-            Directory.CreateDirectory(PacksFolder);
         
         ModLogger.Debug("Checking generic folder...");
         if (!Directory.Exists(GenericFolder))

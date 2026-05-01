@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
+using ResourcefulHands.Utility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,7 +12,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.UI;
 
 public static class RHSettingsManager
 {

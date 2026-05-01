@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ResourcefulHands.Assets;
+using ResourcefulHands.UI;
 
 namespace ResourcefulHands.Systems;
 

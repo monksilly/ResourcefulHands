@@ -3,9 +3,10 @@ using System.ArrayExtensions;
 using System.Collections.Generic;
 using System.Linq;
 using ResourcefulHands.Core;
+using ResourcefulHands.Utility;
 using UnityEngine;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Assets;
 
 public class RHSpriteManager
 {
@@ -94,7 +95,7 @@ public class RHSpriteManager
         if(spriteRenderer == null) return false;
 
         // avoid using ENT_Player due to it not working with the demo (yes, I want to keep demo support)
-        Transform? parent = MiscUtils.FindParentWithName(spriteRenderer.transform, "Inventory-Root");
+        Transform? parent = TransformExtensions.FindParentWithName(spriteRenderer.transform, "Inventory-Root");
         return parent != null && parent;
     }
 
@@ -102,7 +103,7 @@ public class RHSpriteManager
     public static bool IsRightHand(SpriteRenderer spriteRenderer)
     {
         if(spriteRenderer == null) return false;
-        Transform? target = MiscUtils.FindChildWithParentNamed(spriteRenderer.transform, "Inventory-Root");
+        Transform? target = null; //TransformExtensions.FindChildWithParentNamed(spriteRenderer.transform, "Inventory-Root");
         if (target == null) return false;
         
         return target.localPosition.x > 0;

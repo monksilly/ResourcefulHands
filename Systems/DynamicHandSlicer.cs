@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Systems;
 
 public static class DynamicHandSlicer
 {

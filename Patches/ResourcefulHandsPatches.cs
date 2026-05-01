@@ -3,9 +3,10 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using ResourcefulHands.Core;
+using ResourcefulHands.UI;
 using UnityEngine;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Patches;
 
 [HarmonyPatch]
 public class ResourcefulHandsPatches

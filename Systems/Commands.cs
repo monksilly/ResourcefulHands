@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ResourcefulHands.Patches;
+using ResourcefulHands.Utility;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Systems;
 
 public static class RHCommands
 {

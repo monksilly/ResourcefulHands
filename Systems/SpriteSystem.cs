@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ResourcefulHands.Patches;
 using ResourcefulHands.Core;
+using ResourcefulHands.UI;
 
 namespace ResourcefulHands.Systems;
 

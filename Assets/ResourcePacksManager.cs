@@ -5,12 +5,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using BepInEx;
-using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
+using ResourcefulHands.UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Assets;
 
 
 // basically, textures are never fixed rh just hopes that the texture will eventually get reset by something

@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using Newtonsoft.Json;
 using ResourcefulHands.Core;
+using ResourcefulHands.Utility;
 using UnityEngine;
 using UnityEngine.Networking;
 using Object = UnityEngine.Object;
 using Random = System.Random;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Assets;
 
 /*
     // incase whoever is reading this doesn't understand the point of the whole format-version thing
@@ -267,7 +268,7 @@ public class ResourcePack
         string prevGuid = pack.guid;
         if(string.IsNullOrWhiteSpace(pack.guid))
             pack.guid = pack.author.ToLower() + "." + pack.name.ToLower();
-        pack.guid = MiscUtils.CleanString(pack.guid.Replace(' ', '_'));
+        pack.guid = RHExtensions.CleanString(pack.guid.Replace(' ', '_'));
 
         if (pack.guid != prevGuid)
         {

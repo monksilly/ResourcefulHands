@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Assets;
 
 public static class TextureCompositor
 {

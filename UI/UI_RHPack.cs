@@ -1,10 +1,12 @@
 ﻿using ResourcefulHands.Assets;
+using ResourcefulHands.Core;
+using ResourcefulHands.Utility;
 using Steamworks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.UI;
 
 public class UI_RHPack : MonoBehaviour
 {

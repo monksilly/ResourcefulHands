@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ResourcefulHands.Assets;
+using ResourcefulHands.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.UI;
 
 public class UI_RHPacksList : MonoBehaviour
 {

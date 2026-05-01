@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Core;
 
 public struct WKVersion : IComparable<WKVersion>
 {

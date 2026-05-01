@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HarmonyLib;
+using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
 using Sirenix.Utilities;
 using UnityEngine;

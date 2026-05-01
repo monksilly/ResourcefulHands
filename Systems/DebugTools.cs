@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using HarmonyLib;
+using ResourcefulHands.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace ResourcefulHands;
+namespace ResourcefulHands.Systems;
 
 // TODO: this needs alotta work to be effective
 public class RHDebugTools : MonoBehaviour
