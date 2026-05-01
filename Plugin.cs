@@ -20,6 +20,7 @@ namespace ResourcefulHands;
 
 // TODO: test for/fix crash when quitting game (unsure but this has happened at-least twice, possible due to the use of DebugTools.cs?)
 
+[BepInDependency(WKLib.WKLibPlugin.GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(Guid, Name, Version)] // Resourceful Hands
 public class Plugin : BaseUnityPlugin
 {
