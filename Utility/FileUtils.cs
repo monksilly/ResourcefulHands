@@ -6,6 +6,11 @@ namespace ResourcefulHands.Utility;
 
 public static class FileUtils
 {
+    /// <summary>
+    /// Gets the SHA256 Checksum of a file
+    /// </summary>
+    /// <param name="filePath">The file's path</param>
+    /// <returns></returns>
     public static string GetSHA256Checksum(string filePath)
     {
         using FileStream stream = File.OpenRead(filePath);
