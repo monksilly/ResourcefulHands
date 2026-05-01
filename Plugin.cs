@@ -82,7 +82,7 @@ public class Plugin : BaseUnityPlugin
         var hasLoadedIntro = false;
         SceneManager.sceneLoaded += (scene, mode) =>
         {
-            InitOfficialCosmeticSystem();
+            CosmeticSystem.EnsureExists();
             targetFps = Application.targetFrameRate;
             ModLogger.Debug("Evaluating newly loaded scene...");
             if(!scene.name.ToLower().Contains("intro") && !hasLoadedIntro)
@@ -172,18 +172,6 @@ public class Plugin : BaseUnityPlugin
         };
         
         ModLogger.Message("Resourceful Hands has loaded!");
-    }
-
-    private void InitOfficialCosmeticSystem()
-    {
-        if (ofHolder) return;
-
-        ofHolder = new GameObject()
-        {
-            name = "RHCosmeticSystem"
-        };
-        ofHolder.AddComponent<OF_CosmeticPage>();
-        DontDestroyOnLoad(ofHolder);
     }
 }
 // amongus sungus
