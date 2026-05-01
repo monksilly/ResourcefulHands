@@ -20,12 +20,15 @@ namespace ResourcefulHands;
 
 // TODO: test for/fix crash when quitting game (unsure but this has happened at-least twice, possible due to the use of DebugTools.cs?)
 
-[BepInPlugin(GUID, NAME, VERSION)] // Resourceful Hands
+[BepInPlugin(Guid, Name, Version)] // Resourceful Hands
 public class Plugin : BaseUnityPlugin
 {
-    public const string GUID = "monksilly.resourcefulhands";
-    public const string NAME = "Resourceful Hands";
-    public const string VERSION = "0.11.0";
+    public const string Guid = "monksilly.resourcefulhands";
+    public const string Name = "Resourceful Hands";
+    public const string Version = "0.11.0";
+
+    private readonly WKVersion MinVersion = new WKVersion("0.55i");
+    private readonly WKVersion MaxVersion = new WKVersion("0.55m");
 
     public GameObject? ofHolder;
     
@@ -133,6 +136,22 @@ public class Plugin : BaseUnityPlugin
     private static int _mainThreadId;
     public void Awake()
     {
+        WKVersion current = new WKVersion(Application.version);
+        
+        if (current < MinVersion)
+        {
+            RHLog.Error($"Mod is incompatible! Game is too old ({Application.version}). Needs at least {MinVersion}.");
+            // Optionally: this.enabled = false;
+        }
+        else if (current > MaxVersion)
+        {
+            RHLog.Warning($"Mod was made for {MaxVersion}, but you are on {Application.version}. It might still work, but use with caution!");
+        }
+        else
+        {
+            RHLog.Info("Version check passed. Mod is compatible.");
+        }
+        
         Task.Run(ResourcePacksManager.InitLoad);
         InitOfficialCosmeticSystem();
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -145,7 +164,7 @@ public class Plugin : BaseUnityPlugin
             AnsiSupport.EnableConsoleColors();
         
         RHLog.Debug("Patching...");
-        Harmony = new Harmony(GUID);
+        Harmony = new Harmony(Guid);
         Harmony.PatchAll();
 
         RHLog.Debug("Hooking loaded event...");
