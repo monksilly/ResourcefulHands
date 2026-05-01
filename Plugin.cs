@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
@@ -27,6 +28,8 @@ public class Plugin : BaseUnityPlugin
     public const string Name = "Resourceful Hands";
     public const string Version = "0.11.0";
 
+    public const string DeprecatedRHGuid = "triggeredidiot.wkd.resourcefulhands";
+    
     public GameObject? ofHolder;
     
     private static AssetBundle? _assets;
@@ -65,6 +68,23 @@ public class Plugin : BaseUnityPlugin
     private static int _mainThreadId;
     public void Awake()
     {
+        if (Chainloader.PluginInfos.ContainsKey(DeprecatedRHGuid))
+        {
+            var oldModInfo = Chainloader.PluginInfos[DeprecatedRHGuid];
+            ModLogger.Warning($"Detected deprecated mod [{oldModInfo.Metadata.Name}]. Disabling it...");
+
+            var oldModInstance = oldModInfo.Instance;
+
+            if (oldModInstance != null)
+            {
+                oldModInstance.enabled = false;
+                
+                Harmony.UnpatchID(DeprecatedRHGuid);
+                
+                Destroy(oldModInstance.gameObject);
+            }
+        }
+        
         ModLogger.InitLog(Logger);
         VersionChecker.Check();
         
