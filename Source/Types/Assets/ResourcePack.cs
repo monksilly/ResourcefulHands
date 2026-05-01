@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Newtonsoft.Json;
+using ResourcefulHands.Core;
 using UnityEngine;
 using UnityEngine.Networking;
 using Object = UnityEngine.Object;
@@ -199,14 +200,14 @@ public class ResourcePack
         string jsonPath = Path.Combine(path, "info.json");
         if(!File.Exists(jsonPath))
         {
-            RHLog.Warning($"{path} doesn't have an info.json!");
+            ModLogger.Warning($"{path} doesn't have an info.json!");
             return null;
         }
         ResourcePack? pack = JsonConvert.DeserializeObject<ResourcePack>(await File.ReadAllTextAsync(jsonPath));
         if (pack == null)
         {
-            RHLog.Warning($"{jsonPath} isn't a valid ResourcePack json!");
-            RHLog.Info("Example: " + DefaultJson);
+            ModLogger.Warning($"{jsonPath} isn't a valid ResourcePack json!");
+            ModLogger.Info("Example: " + DefaultJson);
             return null;
         }
         pack.PackPath = path;
@@ -216,23 +217,23 @@ public class ResourcePack
         {
             if (pack.hiddenFromList)
             {
-                RHLog.Info($"Not loading resource pack at {path} because it is hidden.");
+                ModLogger.Info($"Not loading resource pack at {path} because it is hidden.");
                 return null;
             }
-            if (pack.onlyInFullGame && Plugin.IsDemo)
+            if (pack.onlyInFullGame && ModState.IsDemo())
             {
-                RHLog.Info($"Skipping incompatible resource pack (it says it only works for the fullgame): {path}");
+                ModLogger.Info($"Skipping incompatible resource pack (it says it only works for the fullgame): {path}");
                 return null;
             }
         }
         
         if(pack.formatVersion != CurrentFormatVersion)
-            RHLog.Warning($"Resource pack at {path} is format version {pack.formatVersion} which isn't {CurrentFormatVersion} (the current version), it may not function correctly.");
+            ModLogger.Warning($"Resource pack at {path} is format version {pack.formatVersion} which isn't {CurrentFormatVersion} (the current version), it may not function correctly.");
         
         string iconPath = Path.Combine(path, pack.relativeIconPath);
         if(!File.Exists(iconPath))
         {
-            RHLog.Warning($"{path} doesn't have an pack.png! (icon path: '{pack.relativeIconPath}')");
+            ModLogger.Warning($"{path} doesn't have an pack.png! (icon path: '{pack.relativeIconPath}')");
             await CoroutineDispatcher.RunOnMainThreadAndWait(() =>
             {
                 pack.Icon = Plugin.IconGray ?? new Texture2D(2,2);
@@ -246,7 +247,7 @@ public class ResourcePack
                 Texture2D texture = new Texture2D(2, 2);
                 if (!texture.LoadImage(fileBytes, false))
                 {
-                    RHLog.Warning($"{iconPath} isn't a valid texture!");
+                    ModLogger.Warning($"{iconPath} isn't a valid texture!");
                     try{Object.Destroy(texture);}catch{/**/}
                 }
                 else
@@ -272,7 +273,7 @@ public class ResourcePack
         {
             string newJson = JsonConvert.SerializeObject(pack, Formatting.Indented);
             await File.WriteAllTextAsync(jsonPath, newJson);
-            RHLog.Warning($"Corrected {pack.name}'s guid: {prevGuid} -> {pack.guid}");
+            ModLogger.Warning($"Corrected {pack.name}'s guid: {prevGuid} -> {pack.guid}");
         }
 
         #endregion
@@ -280,14 +281,14 @@ public class ResourcePack
         var conflictingPack = ResourcePacksManager.LoadedPacks.FirstOrDefault(p => p.guid == pack.guid);
         if (conflictingPack != null)
         {
-            RHLog.Error($"Resource pack's guid ({pack.guid}) at '{path}' is the same as the resource pack's guid at '{conflictingPack.PackPath}" );
+            ModLogger.Error($"Resource pack's guid ({pack.guid}) at '{path}' is the same as the resource pack's guid at '{conflictingPack.PackPath}" );
             return null;
         }
             
-        RHLog.Info($"Resource pack at {path} is valid, loading assets...");
+        ModLogger.Info($"Resource pack at {path} is valid, loading assets...");
         string texturesFolder = Path.Combine(path, pack.relativeTexturesPath);
         string soundsFolder = Path.Combine(path, pack.relativeSoundsPath);
-        RHLog.Debug($"Resource pack at {path} uses '{texturesFolder}' and '{soundsFolder}'");
+        ModLogger.Debug($"Resource pack at {path} uses '{texturesFolder}' and '{soundsFolder}'");
         
         string[] textureFiles = [];
         string[] soundFiles = [];
@@ -301,21 +302,21 @@ public class ResourcePack
         int i = 0;
         foreach (string textureFile in textureFiles)
         {
-            RHLog.Info($"Loading textures ({i++}/{textureCount})");
+            ModLogger.Info($"Loading textures ({i++}/{textureCount})");
             string extension = Path.GetExtension(textureFile).ToLower();
             if (!(extension.Contains("png") || extension.Contains("jpg")))
             {
-                RHLog.Warning($"{extension} isn't supported! Only png and jpg files are supported! [at: {textureFile}]");
+                ModLogger.Warning($"{extension} isn't supported! Only png and jpg files are supported! [at: {textureFile}]");
                 continue;
             }
             byte[] fileBytes = await File.ReadAllBytesAsync(textureFile);
-            RHLog.Debug("Texture valid, queuing...");
+            ModLogger.Debug("Texture valid, queuing...");
             await CoroutineDispatcher.RunOnMainThreadAndWait(() =>
             {
                 Texture2D texture = new Texture2D(2, 2);
                 if (!texture.LoadImage(fileBytes, false))
                 {
-                    RHLog.Warning($"{textureFile} isn't a valid texture!");
+                    ModLogger.Warning($"{textureFile} isn't a valid texture!");
                     try{Object.Destroy(texture);}catch{/**/}
                     return;
                 }
@@ -326,7 +327,7 @@ public class ResourcePack
                 texture.filterMode = FilterMode.Point; // something, something retro
                 texture.Apply();
                 if (!pack.Textures.TryAdd(texture.name, texture))
-                    RHLog.Error($"Failed to add {textureFile} because texture of that name already exists in the same pack!");
+                    ModLogger.Error($"Failed to add {textureFile} because texture of that name already exists in the same pack!");
             });
         }
 
@@ -346,7 +347,7 @@ public class ResourcePack
 
         foreach (var soundFile in files)
         {
-            RHLog.Info($"Queuing sounds ({++i}/{soundCount})");
+            ModLogger.Info($"Queuing sounds ({++i}/{soundCount})");
             
             // Add all sounds to a task list
             soundTasks.Add(LoadSound(soundFile, pack));
@@ -354,7 +355,7 @@ public class ResourcePack
         
         await Task.WhenAll(soundTasks);
         
-        RHLog.Info($"Loaded {soundTasks.Count} sounds for {pack.guid}!");
+        ModLogger.Info($"Loaded {soundTasks.Count} sounds for {pack.guid}!");
     }
     
     // ive tweaked this because for some reason unity decided to randomly remember
@@ -376,7 +377,7 @@ public class ResourcePack
 
         if (audioType == AudioType.UNKNOWN)
         {
-            RHLog.Error($"Failed to load sound file, '{type}' is not a supported format [at: {filepath}]");
+            ModLogger.Error($"Failed to load sound file, '{type}' is not a supported format [at: {filepath}]");
             return;
         }
 
@@ -409,13 +410,13 @@ public class ResourcePack
         try
         {
             if (uwr.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.ProtocolError || dh.audioClip == null)
-                RHLog.Error($"Error while loading {clipName} [at: {filepath}]");
+                ModLogger.Error($"Error while loading {clipName} [at: {filepath}]");
             else
                 audioClip = dh.audioClip;
         }
         catch(Exception e)
         {
-            RHLog.Error($"Error while loading {clipName} [at: {filepath}]\n" + e.Message);
+            ModLogger.Error($"Error while loading {clipName} [at: {filepath}]\n" + e.Message);
         }
 
         if (audioClip == null) yield break;
@@ -428,7 +429,7 @@ public class ResourcePack
         lock (pack.Sounds)
         {
             if (!pack.Sounds.TryAdd(clipName, audioClip))
-                RHLog.Error($"Failed to add {clipName} because sound of that name already exists in the same pack! [at: {filepath}]");
+                ModLogger.Error($"Failed to add {clipName} because sound of that name already exists in the same pack! [at: {filepath}]");
         }
     } 
 }

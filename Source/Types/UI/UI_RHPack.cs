@@ -1,4 +1,5 @@
-﻿using Steamworks;
+﻿using ResourcefulHands.Assets;
+using Steamworks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -97,7 +98,7 @@ public class UI_RHPack : MonoBehaviour
         {
             if (RHConfig.LazyManip)
             {
-                Plugin.RefreshAllAssets(false);
+                AssetRefresher.RefreshAll();
             }
             else
                 UI_RHPacksList.Instance?.ReloadPacks();

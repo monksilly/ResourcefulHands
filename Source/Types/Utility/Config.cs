@@ -4,6 +4,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Newtonsoft.Json;
+using ResourcefulHands.Core;
 using UnityEngine;
 
 namespace ResourcefulHands;
@@ -112,28 +113,28 @@ public static class RHConfig
     
     internal static void InitConfigs()
     {
-        RHLog.Info("Initialising configs...");
+        ModLogger.Info("Initialising configs...");
         
-        RHLog.Debug("Checking packs folder...");
+        ModLogger.Debug("Checking packs folder...");
         if (!Directory.Exists(PacksFolder))
             Directory.CreateDirectory(PacksFolder);
         
-        RHLog.Debug("Checking generic folder...");
+        ModLogger.Debug("Checking generic folder...");
         if (!Directory.Exists(GenericFolder))
             Directory.CreateDirectory(GenericFolder);
         
-        RHLog.Debug("Loading packs prefs...");
+        ModLogger.Debug("Loading packs prefs...");
         PackPrefs.Load();
         Application.quitting += () =>
         {
-            RHLog.Info("Saving pack prefs...");
+            ModLogger.Info("Saving pack prefs...");
             ResourcePacksManager.SavePackOrder();
             ResourcePacksManager.SaveDisabledPacks();
             PackPrefs.Save();
         };
         
         // bind configs
-        RHLog.Debug("Binding configs with bepinex...");
+        ModLogger.Debug("Binding configs with bepinex...");
         
         // General
         lazyManip = Plugin.Instance.Config.Bind(
@@ -142,21 +143,21 @@ public static class RHConfig
             true,
             $"When enabled every pack doesn't get reloaded when reordering or enabling/disabling packs in the settings menu."
         );
-        RHLog.Debug("Bound lazyManip");
+        ModLogger.Debug("Bound lazyManip");
         useOldSpr = Plugin.Instance.Config.Bind(
             "General",
             "Use Old Sprite Replacer",
             false,
             $"A new sprite replacer (the thing that lets you have custom hands) has been added, hopefully this should improve performance. However, if you do have issues with this new replacer, turn this on to disable it."
         );
-        RHLog.Debug("Bound useOldSpr");
+        ModLogger.Debug("Bound useOldSpr");
         useOutdatedPacks = Plugin.Instance.Config.Bind(
             "General",
             "Load outdated packs?",
             true,
             $"When enabled packs that are made with an older pack-version/game-version won't be loaded."
         );
-        RHLog.Debug("Bound useOutdatedPacks");
+        ModLogger.Debug("Bound useOutdatedPacks");
         
         // Debugging
         colorConsole = Plugin.Instance.Config.Bind(
@@ -167,13 +168,13 @@ public static class RHConfig
             false, 
             $"When enabled certain logs are given colors, disable if this is causing issues. Additionally, only works on windows."
         );
-        RHLog.Debug("Bound colorConsole");
+        ModLogger.Debug("Bound colorConsole");
         alwaysDebug = Plugin.Instance.Config.Bind(
             "Debugging",
             "Always debug mode",
             false,
             $"When enabled pack debug mode is always enabled unless toggled via the command ({RHCommands.ToggleDebug})."
         );
-        RHLog.Debug("Bound alwaysDebug");
+        ModLogger.Debug("Bound alwaysDebug");
     }
 }

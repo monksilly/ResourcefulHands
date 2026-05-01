@@ -2,6 +2,7 @@
 using System.ArrayExtensions;
 using System.Collections.Generic;
 using System.Linq;
+using ResourcefulHands.Core;
 using UnityEngine;
 
 namespace ResourcefulHands;
@@ -14,7 +15,7 @@ public class RHSpriteManager
     {
         get
         {
-            if (Plugin.IsDemo)
+            if (ModState.IsDemo())
             {
                 return
                 [
@@ -213,7 +214,7 @@ public class RHSpriteManager
                 cachedSprite = spriteCache;
             else
             {
-                RHLog.Debug($"{spriteCacheName} is null now for some reason [cached]");
+                ModLogger.Debug($"{spriteCacheName} is null now for some reason [cached]");
                 _customSpriteCache.Remove(spriteCacheName);
             }
         }
@@ -223,7 +224,7 @@ public class RHSpriteManager
             return cachedSprite ?? sprite;
         
         if (cachedSprite != null && cachedSprite.texture == texture) return cachedSprite;
-        else RHLog.Debug($"Regenerating new sprite for {sprite} because the texture changed.");
+        else ModLogger.Debug($"Regenerating new sprite for {sprite} because the texture changed.");
 
         // clamp rect incase someone fucks the texture size
         float clampedX = Mathf.Clamp(sprite.rect.x, 0, texture.width);
@@ -237,17 +238,17 @@ public class RHSpriteManager
         
         if(!isModifiedSprite)
         {
-            RHLog.Debug($"{sprite} is being replaced, assuming its an original sprite we are caching it");
+            ModLogger.Debug($"{sprite} is being replaced, assuming its an original sprite we are caching it");
             var tex = sprite.texture;
             if (tex == null)
-                RHLog.Warning($"{sprite} has no texture");
+                ModLogger.Warning($"{sprite} has no texture");
             else
             {
                 OriginalAssetTracker.textures.TryAdd(tex.name, tex);
                 OriginalAssetTracker.sprites.TryAdd(sprite.name, sprite);
             }
         }
-        RHLog.Debug($"cached new replacement {spriteCacheName} as {localSprite}");
+        ModLogger.Debug($"cached new replacement {spriteCacheName} as {localSprite}");
         
         _customSpriteCache.Remove(spriteCacheName);
         _customSpriteCache.Add(spriteCacheName, localSprite);

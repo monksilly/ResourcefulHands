@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HarmonyLib;
+using ResourcefulHands.Core;
 using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ public static class InstantiatePatches
         return;
         if (!result) return;
 
-        RHLog.Debug($"Object spawned: {result.GetType().Name} (from {original?.name ?? "unknown"})");
+        ModLogger.Debug($"Object spawned: {result.GetType().Name} (from {original?.name ?? "unknown"})");
 
         // Use Task.Run ONLY for logic/identification, NOT for API calls
         Task.Run(() => 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ResourcefulHands.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ResourcefulHands.Patches;
@@ -64,31 +65,31 @@ public static class RHCommands
         // yes im being lazy because its a debug command
         CommandConsole.AddCommand(DumpPackInfo, (args) =>
         {
-            ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error);
+            ResourcePack? pack = GetPackFromArgs(args, ModLogger.Player.Error);
             if (pack == null)
             {
-                RHLog.Player.Info("The first argument must be a pack!");
+                ModLogger.Player.Info("The first argument must be a pack!");
                 return;
             }
             
-            RHLog.Player.Info($"-- {pack.name} --");
-            RHLog.Player.Info($"-  [textures]  -");
-            RHLog.Player.Info($"{pack.relativeTexturesPath}");
+            ModLogger.Player.Info($"-- {pack.name} --");
+            ModLogger.Player.Info($"-  [textures]  -");
+            ModLogger.Player.Info($"{pack.relativeTexturesPath}");
             foreach (var texture in pack.Textures)
             {
-                RHLog.Player.Info($"{texture.Key}: {texture.Value}");
+                ModLogger.Player.Info($"{texture.Key}: {texture.Value}");
             }
-            RHLog.Player.Info($"-  [sounds]  -");
-            RHLog.Player.Info($"{pack.relativeSoundsPath}");
+            ModLogger.Player.Info($"-  [sounds]  -");
+            ModLogger.Player.Info($"{pack.relativeSoundsPath}");
             foreach (var sound in pack.Sounds)
             {
-                RHLog.Player.Info($"{sound.Key}: {sound.Value}");
+                ModLogger.Player.Info($"{sound.Key}: {sound.Value}");
             }
-            RHLog.Player.Info($"-  [misc]  -");
-            RHLog.Player.Info($"{pack.relativeIconPath}: {pack.Icon}");
-            RHLog.Player.Info($"packVer: {pack.packVersion}");
-            RHLog.Player.Info($"gameVer: {pack.gameVersionString}");
-            RHLog.Player.Info($"frmtVer: {pack.formatVersion}");
+            ModLogger.Player.Info($"-  [misc]  -");
+            ModLogger.Player.Info($"{pack.relativeIconPath}: {pack.Icon}");
+            ModLogger.Player.Info($"packVer: {pack.packVersion}");
+            ModLogger.Player.Info($"gameVer: {pack.gameVersionString}");
+            ModLogger.Player.Info($"frmtVer: {pack.formatVersion}");
         }, false);
         CommandConsole.AddCommand(AssignHandPack, AssignHandResourcePack, false);
         CommandConsole.AddCommand(ClearHandPack, ClearHandResourcePack, false);
@@ -101,33 +102,33 @@ public static class RHCommands
             $"Usage: {MoveCommand} [pack guid/pack index] [up/down]\nResource packs at the bottom of the loaded list will override textures at the top, use this command to move a resource pack up or down the list.";
         if (args.Length != 2)
         {
-            RHLog.Player.Error("Invalid number of arguments!");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid number of arguments!");
+            ModLogger.Player.Info(helpText);
             return;
         }
 
-        ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error);
+        ResourcePack? pack = GetPackFromArgs(args, ModLogger.Player.Error);
         if (pack == null)
         {
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Info(helpText);
             return;
         }
 
         string dir = args[1].ToLower();
         if (dir is not ("up" or "down" or "u" or "d"))
         {
-            RHLog.Player.Error("Invalid second argument!\nExpected: up or down");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid second argument!\nExpected: up or down");
+            ModLogger.Player.Info(helpText);
             return;
         }
 
         bool isUp = dir is "up" or "u";
         ResourcePacksManager.MovePack(pack, isUp);
 
-        RHLog.Player.Info("Reloading packs...");
+        ModLogger.Player.Info("Reloading packs...");
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info($"Moved {pack.name} {'{'}{pack.guid}{'}'} {(isUp ? "up" : "down")} successfully!");
+            ModLogger.Player.Info($"Moved {pack.name} {'{'}{pack.guid}{'}'} {(isUp ? "up" : "down")} successfully!");
         });
     }
 
@@ -136,7 +137,7 @@ public static class RHCommands
         for (int i = 0; i < ResourcePacksManager.LoadedPacks.Count; i++)
         {
             var pack = ResourcePacksManager.LoadedPacks[i];
-            RHLog.Player.Info(
+            ModLogger.Player.Info(
                 $"{(!pack.IsActive ? "[DISABLED] " : $"[{i}] ")}{pack.name} by {pack.author}\n-- description:\n{pack.desc}\n-- guid: '{pack.guid}'\n____");
         }
     }
@@ -145,7 +146,7 @@ public static class RHCommands
     {
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info("Resource packs reloaded successfully!");
+            ModLogger.Player.Info("Resource packs reloaded successfully!");
         });
     }
 
@@ -192,38 +193,38 @@ public static class RHCommands
     private static void DisablePack(string[] args)
     {
         const string helpText = $"Usage: {DisableCommand} [pack guid/pack index]\nDisables a resource pack.";
-        ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error);
+        ResourcePack? pack = GetPackFromArgs(args, ModLogger.Player.Error);
         if (pack == null)
         {
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Info(helpText);
             return;
         }
 
         pack.IsActive = false;
-        RHLog.Player.Info("Reloading packs...");
+        ModLogger.Player.Info("Reloading packs...");
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info($"Disabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
+            ModLogger.Player.Info($"Disabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
         });
     }
 
     private static void EnablePack(string[] args)
     {
         const string helpText = $"Usage: {EnableCommand} [pack guid/pack index]\nEnables a resource pack.";
-        ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error);
+        ResourcePack? pack = GetPackFromArgs(args, ModLogger.Player.Error);
         if (pack == null)
         {
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Info(helpText);
             return;
         }
 
         pack.IsActive = true;
-        RHLog.Player.Info("Reloading packs...");
+        ModLogger.Player.Info("Reloading packs...");
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info($"Enabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
+            ModLogger.Player.Info($"Enabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
         });
-        RHLog.Player.Info($"Enabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
+        ModLogger.Player.Info($"Enabled {pack.name} {'{'}{pack.guid}{'}'} successfully!");
     }
     
     private static void DisableAll(string[] args)
@@ -232,10 +233,10 @@ public static class RHCommands
         
         ResourcePacksManager.LoadedPacks.ForEach(p => p.IsActive = false);
         
-        RHLog.Player.Info("Reloading packs...");
+        ModLogger.Player.Info("Reloading packs...");
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info($"Disabled all packs successfully!");
+            ModLogger.Player.Info($"Disabled all packs successfully!");
         });
     }
     private static void EnableAll(string[] args)
@@ -244,10 +245,10 @@ public static class RHCommands
         
         ResourcePacksManager.LoadedPacks.ForEach(p => p.IsActive = true);
         
-        RHLog.Player.Info("Reloading packs...");
+        ModLogger.Player.Info("Reloading packs...");
         ResourcePacksManager.ReloadPacks(true, () =>
         {
-            RHLog.Player.Info($"Enabled all packs successfully!");
+            ModLogger.Player.Info($"Enabled all packs successfully!");
         });
     }
     
@@ -255,7 +256,7 @@ public static class RHCommands
     {
         if (args.Any(arg => arg.ToLower() == "help"))
         {
-            RHLog.Player.Info(
+            ModLogger.Player.Info(
                 "Use this command to generate a resource pack that contains every in-game asset. Good to find assets to replace but beware that there will probably be unused assets!");
             return;
         }
@@ -263,12 +264,12 @@ public static class RHCommands
         bool isConfirmed = args.Any(arg => arg.ToLower() == "confirm");
         if (!isConfirmed)
         {
-            RHLog.Player.Error(
+            ModLogger.Player.Error(
                 $"Warning: This takes up alot of storage space due to uncompressed audio!\nTHIS WILL ALSO END YOUR RUN AND LOAD YOU BACK TO THE MAIN MENU!!\nARE YOU SURE? (type '{DumpCommand} confirm')");
             return;
         }
 
-        RHLog.Player.Info("Dumping all resources to a template resource pack [this will take some time]...");
+        ModLogger.Player.Info("Dumping all resources to a template resource pack [this will take some time]...");
         List<Texture2D> textures = [];
         List<Texture2D> spriteTextures = [];
         List<AudioClip> sounds = [];
@@ -282,7 +283,7 @@ public static class RHCommands
         spriteTextures.AddRange(sprites.Where(sprite => sprite.texture && !spriteTextures.Contains(sprite.texture))
             .Select(sprite => sprite.texture));
 
-        RHLog.Player.Info("Loading Playground [to extract assets]");
+        ModLogger.Player.Info("Loading Playground [to extract assets]");
         SceneManager.LoadScene("Playground");
         texture2Ds = Resources.FindObjectsOfTypeAll<Texture2D>();
         textures.AddRange(texture2Ds.Where(tex => !textures.Contains(tex)));
@@ -292,7 +293,7 @@ public static class RHCommands
         spriteTextures.AddRange(sprites.Where(sprite => sprite.texture && !spriteTextures.Contains(sprite.texture))
             .Select(sprite => sprite.texture));
 
-        RHLog.Player.Info("Loading Training-Level [to extract assets]");
+        ModLogger.Player.Info("Loading Training-Level [to extract assets]");
         SceneManager.LoadScene("Training-Level");
         texture2Ds = Resources.FindObjectsOfTypeAll<Texture2D>();
         textures.AddRange(texture2Ds.Where(tex => !textures.Contains(tex)));
@@ -302,7 +303,7 @@ public static class RHCommands
         spriteTextures.AddRange(sprites.Where(sprite => sprite.texture && !spriteTextures.Contains(sprite.texture))
             .Select(sprite => sprite.texture));
 
-        RHLog.Player.Info("Loading Main-Menu [to extract assets and finish]");
+        ModLogger.Player.Info("Loading Main-Menu [to extract assets and finish]");
         SceneManager.LoadScene("Main-Menu");
         texture2Ds = Resources.FindObjectsOfTypeAll<Texture2D>();
         textures.AddRange(texture2Ds.Where(tex => !textures.Contains(tex)));
@@ -312,7 +313,7 @@ public static class RHCommands
         spriteTextures.AddRange(sprites.Where(sprite => sprite.texture && !spriteTextures.Contains(sprite.texture))
             .Select(sprite => sprite.texture));
 
-        RHLog.Player.Info("Packing assets...");
+        ModLogger.Player.Info("Packing assets...");
 
         int texturesAmnt = textures.Count;
         int spriteTexturesAmnt = spriteTextures.Count;
@@ -349,7 +350,7 @@ public static class RHCommands
             {
                 if (!texture.isReadable)
                 {
-                    RHLog.Player.Info($"{texture.name} isn't readable, saving the slow way...");
+                    ModLogger.Player.Info($"{texture.name} isn't readable, saving the slow way...");
                     RenderTexture renderTexture = new RenderTexture(texture.width, texture.height, 24);
 
                     var oldActive = RenderTexture.active;
@@ -387,7 +388,7 @@ public static class RHCommands
             }
             catch (Exception e)
             {
-                RHLog.Player.Error($"{texture.name} failed because {e.Message}");
+                ModLogger.Player.Error($"{texture.name} failed because {e.Message}");
             }
 
             return saved;
@@ -396,7 +397,7 @@ public static class RHCommands
         for (int i = 0; i < texturesAmnt; i++)
         {
             var texture = textures[i];
-            RHLog.Player.Info($"Saving textures ({i}/{texturesAmnt})");
+            ModLogger.Player.Info($"Saving textures ({i}/{texturesAmnt})");
             textureInfo.Append(texture.name);
             bool saved = false;
             try
@@ -405,7 +406,7 @@ public static class RHCommands
             }
             catch (Exception e)
             {
-                RHLog.Player.Error($"{texture.name} failed because {e.Message}");
+                ModLogger.Player.Error($"{texture.name} failed because {e.Message}");
             }
 
             if (saved) savedTextures++;
@@ -415,7 +416,7 @@ public static class RHCommands
         for (int i = 0; i < spriteTexturesAmnt; i++)
         {
             var spriteTexture = spriteTextures[i];
-            RHLog.Player.Info($"Saving textures ({i}/{spriteTexturesAmnt})");
+            ModLogger.Player.Info($"Saving textures ({i}/{spriteTexturesAmnt})");
             spriteTextureInfo.Append(spriteTexture.name);
             bool saved = false;
             try
@@ -424,7 +425,7 @@ public static class RHCommands
             }
             catch (Exception e)
             {
-                RHLog.Player.Error($"{spriteTexture.name} failed because {e.Message}");
+                ModLogger.Player.Error($"{spriteTexture.name} failed because {e.Message}");
             }
 
             if (saved) savedSprites++;
@@ -434,7 +435,7 @@ public static class RHCommands
         for (int i = 0; i < soundsAmnt; i++)
         {
             var clip = sounds[i];
-            RHLog.Player.Info($"Saving sounds ({i}/{soundsAmnt})");
+            ModLogger.Player.Info($"Saving sounds ({i}/{soundsAmnt})");
             audioInfo.Append(clip.name);
             bool saved = false;
             try
@@ -443,7 +444,7 @@ public static class RHCommands
                 var data = new float[clip.samples * clip.channels];
                 if (!clip.GetData(data, 0))
                 {
-                    RHLog.Player.Error($"Failed to access {clip.name}'s audio data!");
+                    ModLogger.Player.Error($"Failed to access {clip.name}'s audio data!");
                     audioInfo.AppendLine(" [failed to extract]");
                     continue;
                 }
@@ -511,13 +512,13 @@ public static class RHCommands
             }
             catch (Exception e)
             {
-                RHLog.Player.Info($"{clip.name} failed because {e.Message}");
+                ModLogger.Player.Info($"{clip.name} failed because {e.Message}");
             }
 
             audioInfo.AppendLine(saved ? "" : " [failed to extract]");
         }
 
-        RHLog.Player.Info($"Writing data files");
+        ModLogger.Player.Info($"Writing data files");
         // template json
         File.WriteAllText(Path.Combine(path, "info.json"), ResourcePack.DefaultJson);
         // export info
@@ -525,10 +526,10 @@ public static class RHCommands
         File.WriteAllText(Path.Combine(path, "sprite_textures_list.txt"), spriteTextureInfo.ToString());
         File.WriteAllText(Path.Combine(path, "audio_list.txt"), audioInfo.ToString());
 
-        RHLog.Player.Info($"Successfully saved {savedTextures} of {texturesAmnt} textures!");
-        RHLog.Player.Info($"Successfully saved {savedSprites} of {spriteTexturesAmnt} sprite textures!");
-        RHLog.Player.Info($"Successfully saved {savedSounds} of {soundsAmnt} sounds!");
-        RHLog.Player.Info($"Packed all assets to '{path}'");
+        ModLogger.Player.Info($"Successfully saved {savedTextures} of {texturesAmnt} textures!");
+        ModLogger.Player.Info($"Successfully saved {savedSprites} of {spriteTexturesAmnt} sprite textures!");
+        ModLogger.Player.Info($"Successfully saved {savedSounds} of {soundsAmnt} sounds!");
+        ModLogger.Player.Info($"Packed all assets to '{path}'");
     }
     
     private static void AssignHandResourcePack(string[] args)
@@ -537,24 +538,24 @@ public static class RHCommands
         
         if (args.Length != 2)
         {
-            RHLog.Player.Error("Invalid number of arguments!");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid number of arguments!");
+            ModLogger.Player.Info(helpText);
             return;
         }
         
         int handId = GetHandIdFromString(args[0]);
         if (handId < 0)
         {
-            RHLog.Player.Error("Invalid hand! Must be 'left' or 'right'");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid hand! Must be 'left' or 'right'");
+            ModLogger.Player.Info(helpText);
             return;
         }
         
-        ResourcePack? pack = GetPackFromArgs(args, RHLog.Player.Error, 1);
+        ResourcePack? pack = GetPackFromArgs(args, ModLogger.Player.Error, 1);
         if (pack == null)
         {
-            RHLog.Player.Error("Invalid pack!");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid pack!");
+            ModLogger.Player.Info(helpText);
             return;
         }
 
@@ -565,7 +566,7 @@ public static class RHCommands
         // Force refresh of sprites
         RHSpriteManager.ClearHandSprites();
         string handName = handId == 0 ? "left" : "right";
-        RHLog.Player.Info($"Assigned resource pack '{pack.guid}' to {handName} hand");
+        ModLogger.Player.Info($"Assigned resource pack '{pack.guid}' to {handName} hand");
     }
     
     private static void ClearHandResourcePack(string[] args)
@@ -574,16 +575,16 @@ public static class RHCommands
         
         if (args.Length != 1)
         {
-            RHLog.Player.Error("Invalid number of arguments!");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid number of arguments!");
+            ModLogger.Player.Info(helpText);
             return;
         }
         
         int handId = GetHandIdFromString(args[0]);
         if (handId < 0)
         {
-            RHLog.Player.Error("Invalid hand! Must be 'left' or 'right'");
-            RHLog.Player.Info(helpText);
+            ModLogger.Player.Error("Invalid hand! Must be 'left' or 'right'");
+            ModLogger.Player.Info(helpText);
             return;
         }
         
@@ -594,12 +595,12 @@ public static class RHCommands
         // Force refresh of sprites
         RHSpriteManager.ClearHandSprites();
         string handName = handId == 0 ? "left" : "right";
-        RHLog.Player.Info($"Cleared resource pack from {handName} hand");
+        ModLogger.Player.Info($"Cleared resource pack from {handName} hand");
     }
     
     private static void ListHandResourcePack(string[] args)
     {
-        RHLog.Player.Info("Hand Resource Pack Assignments:");
+        ModLogger.Player.Info("Hand Resource Pack Assignments:");
         
         for (int i = 0; i < 2; i++)
         {
@@ -607,17 +608,17 @@ public static class RHCommands
             string packGuid = RHSpriteManager.GetHandsOverride(i == 0);
             
             if (string.IsNullOrEmpty(packGuid))
-                RHLog.Player.Info($"{handName} Hand: No custom pack assigned");
+                ModLogger.Player.Info($"{handName} Hand: No custom pack assigned");
             else
             {
                 var pack = ResourcePacksManager.LoadedPacks.FirstOrDefault(p => p.guid == packGuid);
                 string packName = pack?.name ?? "Unknown Pack";
-                RHLog.Player.Info($"{handName} Hand: {packName} ({packGuid})");
+                ModLogger.Player.Info($"{handName} Hand: {packName} ({packGuid})");
             }
         }
         
-        RHLog.Player.Info("Use 'assignhandpack [hand] [pack guid/pack index]' to assign a pack");
-        RHLog.Player.Info("Use 'clearhandpack [hand]' to clear a hand's pack");
+        ModLogger.Player.Info("Use 'assignhandpack [hand] [pack guid/pack index]' to assign a pack");
+        ModLogger.Player.Info("Use 'clearhandpack [hand]' to clear a hand's pack");
     }
     
     private static int GetHandIdFromString(string handString)

@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BepInEx;
-using BepInEx.Logging;
 using HarmonyLib;
+using ResourcefulHands.Core;
 using ResourcefulHands.Patches;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace ResourcefulHands;
 
@@ -26,9 +23,6 @@ public class Plugin : BaseUnityPlugin
     public const string Guid = "monksilly.resourcefulhands";
     public const string Name = "Resourceful Hands";
     public const string Version = "0.11.0";
-
-    private readonly WKVersion MinVersion = new WKVersion("0.55i");
-    private readonly WKVersion MaxVersion = new WKVersion("0.55m");
 
     public GameObject? ofHolder;
     
@@ -58,76 +52,8 @@ public class Plugin : BaseUnityPlugin
     public static Texture2D? IconGray;
     
     public static Plugin Instance { get; private set; } = null!;
-    internal static ManualLogSource Log { get; private set; } = null!; // create log source for RHLog
-    
-    public static bool IsDemo
-    {
-        get
-        {
-            try
-            {
-                var appid = Steamworks.SteamClient.AppId;
-                RHLog.Debug($"Appid: {appid}");
-                if (appid.Value == 3218540) // 3195790 = full game, 3218540 = demo
-                    return true;
-            }catch(Exception e){RHLog.Error(e);}
-            return false;
-        }
-    }
 
     private Harmony? Harmony { get; set; }
-
-    private static void RefreshTextures() // TODO: refresh without fucky manipulation tatics?
-    {
-        RHSpriteManager.ClearSpriteCache();
-        
-        // do some manipulation to the variables to trigger the harmony patches to replace them
-        List<Material> allMaterials = FindObjectsByType<Material>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
-        foreach (var renderer in FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            allMaterials.AddRange(renderer.sharedMaterials.Where(mat => !allMaterials.Contains(mat)));
-        int mainTex = Shader.PropertyToID("_MainTex");
-        
-        // special checks for the mass texture
-        int corruptTextureID = Shader.PropertyToID("_CORRUPTTEXTURE");
-        Texture2D? corruptTexture = ResourcePacksManager.GetTextureFromPacks("_CORRUPTTEXTURE");
-        
-        foreach (var material in allMaterials)
-        {
-            if (material == null) continue;
-            
-            if (material.HasTexture(mainTex))
-                material.mainTexture = material.mainTexture;
-                
-            // TODO: is a try catch necessary here?
-            try
-            { material.SetTexture(corruptTextureID, corruptTexture); }
-            catch (Exception e)
-            { RHLog.Error(e); }
-        }
-
-        foreach (var spriteR in FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            spriteR.sprite = spriteR.sprite;
-        
-        foreach (var img in FindObjectsByType<Image>(FindObjectsInactive.Include, FindObjectsSortMode.None)) // TODO: fix the logo getting fucked up
-        {
-            img.sprite = img.sprite;
-            img.overrideSprite = img.overrideSprite;
-        }
-    }
-
-    private static void RefreshSounds()
-    {
-        // do some manipulation to the variables to trigger the harmony patches to replace them
-        List<AudioSource> allAudioSources = FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList();
-
-        foreach (var audioSource in allAudioSources)
-        {
-            AudioSourcePatches.SwapClip(audioSource);
-            if (audioSource.isPlaying && audioSource.time < 0.1 && audioSource.enabled &&
-                audioSource.gameObject.activeInHierarchy)
-                RHDebugTools.QueueSound(audioSource.clip);
-        }
-    }
 
     // TODO: remove jank
     internal static int targetFps = 60;
@@ -136,53 +62,35 @@ public class Plugin : BaseUnityPlugin
     private static int _mainThreadId;
     public void Awake()
     {
-        WKVersion current = new WKVersion(Application.version);
-        
-        if (current < MinVersion)
-        {
-            RHLog.Error($"Mod is incompatible! Game is too old ({Application.version}). Needs at least {MinVersion}.");
-            // Optionally: this.enabled = false;
-        }
-        else if (current > MaxVersion)
-        {
-            RHLog.Warning($"Mod was made for {MaxVersion}, but you are on {Application.version}. It might still work, but use with caution!");
-        }
-        else
-        {
-            RHLog.Info("Version check passed. Mod is compatible.");
-        }
+        ModLogger.InitLog(Logger);
+        VersionChecker.Check();
         
         Task.Run(ResourcePacksManager.InitLoad);
-        InitOfficialCosmeticSystem();
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         
-        Log = Logger;
         Instance = this;
         RHConfig.InitConfigs();
         
-        if(IsWindows && RHConfig.ColoredConsole)
-            AnsiSupport.EnableConsoleColors();
-        
-        RHLog.Debug("Patching...");
+        ModLogger.Debug("Patching...");
         Harmony = new Harmony(Guid);
         Harmony.PatchAll();
 
-        RHLog.Debug("Hooking loaded event...");
+        ModLogger.Debug("Hooking loaded event...");
         var hasLoadedIntro = false;
         SceneManager.sceneLoaded += (scene, mode) =>
         {
             InitOfficialCosmeticSystem();
             targetFps = Application.targetFrameRate;
-            RHLog.Debug("Evaluating newly loaded scene...");
+            ModLogger.Debug("Evaluating newly loaded scene...");
             if(!scene.name.ToLower().Contains("intro") && !hasLoadedIntro)
             {
                 hasLoadedIntro = true;
-                RHLog.Info("Loading internal assets...");
+                ModLogger.Info("Loading internal assets...");
                 Assets?.LoadAllAssets();
 
                 if (RHConfig.UseOldSprReplace)
                 {
-                    RHLog.Info("Hooking sprite replacer...");
+                    ModLogger.Info("Hooking sprite replacer...");
                     CoroutineDispatcher.AddToUpdate(() =>
                     {
                         var spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
@@ -193,7 +101,7 @@ public class Plugin : BaseUnityPlugin
                 }
                 else // TODO: eventually improve this to edit animators or sum?
                 {
-                    RHLog.Info("Queuing sprite replacer...");
+                    ModLogger.Info("Queuing sprite replacer...");
                     CoroutineDispatcher.RunOnMainThread(() => //create isolated local context
                     {
                         var spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
@@ -228,7 +136,7 @@ public class Plugin : BaseUnityPlugin
                         {
                             if (Time.time - lastTick > tickSpace * 32.0f)
                             {
-                                RHLog.Warning("Sprite finder thread has been dead for a while, restarting...");
+                                ModLogger.Warning("Sprite finder thread has been dead for a while, restarting...");
                                 CreateCoroutine();
                             }
                             
@@ -238,29 +146,29 @@ public class Plugin : BaseUnityPlugin
                     });
                 }
                 
-                RHLog.Info("Loading debug tools...");
+                ModLogger.Info("Loading debug tools...");
                 RHDebugTools.Create();
             }
             
             if (!hasLoadedIntro)
                 return;
             
-            RHLog.Info("Checking packs state...");
+            ModLogger.Info("Checking packs state...");
             if (ResourcePacksManager.HasPacksChanged)
                 ResourcePacksManager.ReloadPacks(callback:(() =>
                 { RHSettingsManager.ShowNotice("Packs have been auto reloaded!"); }));
             
-            RHLog.Info("Refreshing custom commands...");
+            ModLogger.Info("Refreshing custom commands...");
             RHCommands.RefreshCommands();
 
-            RHLog.Info("Loading settings menu...");
+            ModLogger.Info("Loading settings menu...");
             RHSettingsManager.LoadCustomSettings();
             
-            RHLog.Info("Refreshing assets...");
-            RefreshAllAssets();
+            ModLogger.Info("Refreshing assets...");
+            // RefreshAllAssets();
         };
         
-        RHLog.Message("Resourceful Hands has loaded!");
+        ModLogger.Message("Resourceful Hands has loaded!");
     }
 
     private void InitOfficialCosmeticSystem()
@@ -273,14 +181,6 @@ public class Plugin : BaseUnityPlugin
         };
         ofHolder.AddComponent<OF_CosmeticPage>();
         DontDestroyOnLoad(ofHolder);
-    }
-    
-    internal static void RefreshAllAssets(bool refreshOriginalAssets = true)
-    {
-        RefreshTextures();
-        RefreshSounds();
-        if(refreshOriginalAssets)
-            OriginalAssetTracker.ClearAll();
     }
 }
 // amongus sungus

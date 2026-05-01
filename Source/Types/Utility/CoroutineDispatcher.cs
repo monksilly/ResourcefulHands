@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using ResourcefulHands.Core;
 using UnityEngine;
 
 namespace ResourcefulHands;
@@ -69,11 +70,11 @@ internal class CoroutineDispatcher : MonoBehaviour
         bool hasRan = false;
         threadQueue.Enqueue(() =>
         {
-            RHLog.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
+            ModLogger.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
             try
             { action(); }
             catch (Exception e)
-            { RHLog.Error(e); }
+            { ModLogger.Error(e); }
             hasRan = true;
         });
 
@@ -85,7 +86,7 @@ internal class CoroutineDispatcher : MonoBehaviour
         while (!hasRan)
             await Task.Delay(Mathf.FloorToInt((1.0f/fps)*1000)); 
         
-        RHLog.Debug($"[{Path.GetFileName(file)}:{lineNumber}] has executed!");
+        ModLogger.Debug($"[{Path.GetFileName(file)}:{lineNumber}] has executed!");
     }
     
     /// <summary>

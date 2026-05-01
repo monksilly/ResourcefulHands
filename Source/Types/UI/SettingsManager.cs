@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ResourcefulHands.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -46,10 +47,10 @@ public static class RHSettingsManager
     {
         yield return new WaitForSecondsRealtime(1.0f);
         
-        RHLog.Info("Loading custom settings menu...");
+        ModLogger.Info("Loading custom settings menu...");
         if (Plugin.Assets == null)
         {
-            RHLog.Warning("No assets?");
+            ModLogger.Warning("No assets?");
             yield break;
         }
         try
@@ -139,7 +140,7 @@ public static class RHSettingsManager
         }
         catch (Exception e)
         {
-            RHLog.Error("Failed to load custom settings menu:\n"+e.ToString());
+            ModLogger.Error("Failed to load custom settings menu:\n"+e.ToString());
         }
     }
     

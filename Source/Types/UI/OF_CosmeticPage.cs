@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ResourcefulHands.Core;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -33,7 +34,7 @@ public class OF_CosmeticPage : MonoBehaviour
             instance = this;
         else
         {
-            RHLog.Warning("Destroying Duplicate Cosmetics Page Manager");
+            ModLogger.Warning("Destroying Duplicate Cosmetics Page Manager");
             Destroy(gameObject);
             return;
         }
@@ -72,7 +73,7 @@ public class OF_CosmeticPage : MonoBehaviour
 
     private IEnumerator InitializeCosmeticsRoutine()
     {
-        RHLog.Info("Waiting for Resource Packs to finish loading...");
+        ModLogger.Info("Waiting for Resource Packs to finish loading...");
         
         var packTask = ResourcePacksManager.InitialLoadTask;
         while (!packTask.IsCompleted)
@@ -80,7 +81,7 @@ public class OF_CosmeticPage : MonoBehaviour
             yield return null;
         }
         
-        RHLog.Info("Packs loaded. Now waiting for Unity Cosmetics Menu to initialize...");
+        ModLogger.Info("Packs loaded. Now waiting for Unity Cosmetics Menu to initialize...");
         
         GameObject? candidate = null;
         while (candidate == null)
@@ -96,14 +97,14 @@ public class OF_CosmeticPage : MonoBehaviour
             yield return null;
         }
         
-        RHLog.Info("Game UI ready. Injecting RH Cosmetic Page...");
+        ModLogger.Info("Game UI ready. Injecting RH Cosmetic Page...");
         
         FindCosmeticsTemplate();
         PrepareCosmeticPage();
         PrepareCosmetics();
         
         IsReady = true;
-        RHLog.Info("RH Cosmetics are ready.");
+        ModLogger.Info("RH Cosmetics are ready.");
         // ApplyCosmetics();
     }
     
@@ -111,20 +112,20 @@ public class OF_CosmeticPage : MonoBehaviour
     {
         if (cosmeticsMenuObject && cosmeticsMenu) return;
         
-        RHLog.Debug("Finding Cosmetics Template");
+        ModLogger.Debug("Finding Cosmetics Template");
         var candidate = GameObject.Find("Canvas - Screens/Screens/Canvas - Screen - Other/Cosmetics");
         if (!candidate)
         {
-            RHLog.Error("Cosmetics template game object not found");
+            ModLogger.Error("Cosmetics template game object not found");
             return;
         };
         var uiCosmeticMenu = candidate.GetComponent<UI_CosmeticsMenu>();
         if (!uiCosmeticMenu)
         {
-            RHLog.Error("Cosmetics menu template not found");
+            ModLogger.Error("Cosmetics menu template not found");
             return;
         }
-        RHLog.Debug("Cosmetics template found");
+        ModLogger.Debug("Cosmetics template found");
         
         cosmeticsMenuObject = candidate;
         cosmeticsMenu = uiCosmeticMenu;
@@ -210,7 +211,7 @@ public class OF_CosmeticPage : MonoBehaviour
         
         // Actually attach it to The default Hands one!
         var handPage = cosmeticsMenu?.cosmeticPages.Find(p => p.cosmeticType == "hand");
-        RHLog.Error($"Cosmetic page: {handPage} | ");
+        ModLogger.Error($"Cosmetic page: {handPage} | ");
 
         cosmeticPage = new UI_CosmeticsMenu.CosmeticPage
         {
@@ -242,14 +243,14 @@ public class OF_CosmeticPage : MonoBehaviour
             
             if (!isHandsPack) continue;
             
-            RHLog.Debug($"Loading {resourcePack.name} in Experimental Menu");
+            ModLogger.Debug($"Loading {resourcePack.name} in Experimental Menu");
             var newCosmetic = ScriptableObject.CreateInstance<Cosmetic_HandItem>();
             newCosmetic.name = resourcePack.name;
             newCosmetic.currentEmoteIds = [0, 0];
             newCosmetic.currentPaletteId = 0;
 
             var cardTemplate = Resources.FindObjectsOfTypeAll<Sprite>().FirstOrDefault(s => s.name == "card-blank-foreground");
-            RHLog.Debug($"Card template: {cardTemplate}");
+            ModLogger.Debug($"Card template: {cardTemplate}");
             var cosmeticCard = TextureCompositor.CreatePackCard(resourcePack.Icon, TextureCompositor.SpriteToTexture(cardTemplate));
             
             newCosmetic.cosmeticInfo = new Cosmetic_Info
@@ -278,7 +279,7 @@ public class OF_CosmeticPage : MonoBehaviour
             
             Dictionary<string, Cosmetic_HandItem.SwapSprite> swapsDict = [];
             Dictionary<string, Cosmetic_HandItem.InteractSwap> interactsDict = [];
-            RHLog.Debug("Loading swaps");
+            ModLogger.Debug("Loading swaps");
             foreach (var resSources in resourcePack.Textures)
             {
                 if (resSources.Value is null) continue; // Skip if no texture to save CPU
@@ -294,7 +295,7 @@ public class OF_CosmeticPage : MonoBehaviour
                     {
                         var tName = namedSplice.Key;
                         var tTexture = namedSplice.Value;
-                        RHLog.Debug($"{tName}");
+                        ModLogger.Debug($"{tName}");
                         
                         var newSwap = new Cosmetic_HandItem.SwapSprite
                         {
@@ -366,12 +367,12 @@ public class OF_CosmeticPage : MonoBehaviour
             
             foreach (var swap in swapsDict.Keys)
             {
-                RHLog.Debug(swap);
+                ModLogger.Debug(swap);
             }
 
             foreach (var interact in interactsDict.Keys)
             {
-                RHLog.Debug(interact);
+                ModLogger.Debug(interact);
             }
             newCosmetic.cosmeticData.swapSprites.AddRange(swapsDict.Values);
             newCosmetic.cosmeticData.interactSwaps.AddRange(interactsDict.Values);
@@ -393,12 +394,12 @@ public class OF_CosmeticPage : MonoBehaviour
         // ONLY initialize if the dictionary is null OR empty
         if (swapDict == null || swapDict.Count == 0)
         {
-            RHLog.Debug($"Initializing {item.name}...");
+            ModLogger.Debug($"Initializing {item.name}...");
             InvokePrivateMethod(item, "Initialize");
         }
         else
         {
-            RHLog.Warning($"{item.name} was already initialized! Skipping to avoid Dictionary crash.");
+            ModLogger.Warning($"{item.name} was already initialized! Skipping to avoid Dictionary crash.");
         }
     }
     
@@ -425,7 +426,7 @@ public class OF_CosmeticPage : MonoBehaviour
         }
         catch (Exception e)
         {
-            RHLog.Error($"FillCosmeticPage failed: {e.Message}");
+            ModLogger.Error($"FillCosmeticPage failed: {e.Message}");
         }
     }
 
@@ -461,13 +462,13 @@ public class OF_CosmeticPage : MonoBehaviour
                     // Register it with the save system so it can be "owned" or "equipped"
                     SettingsManager.settings.cosmeticSaveData.FillNewCosmeticInfo(handItem);
                 
-                    RHLog.Info($"Successfully injected {handItem.name} into CL_CosmeticManager");
+                    ModLogger.Info($"Successfully injected {handItem.name} into CL_CosmeticManager");
                 }
             }
         }
         catch (Exception e)
         {
-            RHLog.Error($"Failed to inject into CL_CosmeticManager: {e.Message}");
+            ModLogger.Error($"Failed to inject into CL_CosmeticManager: {e.Message}");
         }
     }
     
@@ -485,7 +486,7 @@ public class OF_CosmeticPage : MonoBehaviour
         }
         else
         {
-            RHLog.Error($"Method '{methodName}' not found on {obj.GetType().Name}");
+            ModLogger.Error($"Method '{methodName}' not found on {obj.GetType().Name}");
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
+using ResourcefulHands.Core;
 using UnityEngine;
 
 namespace ResourcefulHands;
@@ -50,7 +51,7 @@ public class ResourcefulHandsPatches
 
         private static System.Collections.IEnumerator DelayedVanillaScan()
         {
-            RHLog.Info("[VanillaScan] Waiting for Manager to fully populate lists...");
+            ModLogger.Info("[VanillaScan] Waiting for Manager to fully populate lists...");
             var manager = Trv(typeof(CL_CosmeticManager));
     
             // Wait until the game has actually finished its own AddRange calls
@@ -61,7 +62,7 @@ public class ResourcefulHandsPatches
                 var loadedList = manager.Field<List<Cosmetic_Base>>("loadedCosmetics").Value;
                 if (loadedList != null && loadedList.Count > 0)
                 {
-                    RHLog.Info($"[VanillaScan] Manager is ready with {loadedList.Count} items. Starting scan...");
+                    ModLogger.Info($"[VanillaScan] Manager is ready with {loadedList.Count} items. Starting scan...");
                     // TODO: Remove this
                     // ScanVanillaCosmeticsInPlugins();
                     yield break;
@@ -69,17 +70,17 @@ public class ResourcefulHandsPatches
                 timer += 0.2f;
                 yield return new WaitForSeconds(0.2f);
             }
-            RHLog.Error("[VanillaScan] Timed out waiting for CL_CosmeticManager!");
+            ModLogger.Error("[VanillaScan] Timed out waiting for CL_CosmeticManager!");
         }
 
         public static Dictionary<string, string>? GetVanillaCosmeticsInPlugins()
         {
             string pluginPath = BepInEx.Paths.PluginPath;
-            RHLog.Info($"[VanillaScan] Searching {pluginPath}...");
+            ModLogger.Info($"[VanillaScan] Searching {pluginPath}...");
 
             if (!Directory.Exists(pluginPath))
             {
-                RHLog.Error($"[VanillaScan] Directory does not exist: {pluginPath}");
+                ModLogger.Error($"[VanillaScan] Directory does not exist: {pluginPath}");
                 return null;
             }
 
@@ -91,11 +92,11 @@ public class ResourcefulHandsPatches
             }
             catch (Exception ex)
             {
-                RHLog.Error($"[VanillaScan] Failed to read filesystem: {ex.Message}");
+                ModLogger.Error($"[VanillaScan] Failed to read filesystem: {ex.Message}");
                 return null;
             }
 
-            RHLog.Info($"[VanillaScan] Found {jsonFiles.Length} potential vanilla hand JSONs.");
+            ModLogger.Info($"[VanillaScan] Found {jsonFiles.Length} potential vanilla hand JSONs.");
 
             Dictionary<string, string> result = new Dictionary<string, string>();
             
@@ -103,7 +104,7 @@ public class ResourcefulHandsPatches
             {
                 // Get the directory containing the JSON
                 string folder = Path.GetDirectoryName(jsonPath)!;
-                RHLog.Info($"[VanillaScan] Attempting load from: {folder}");
+                ModLogger.Info($"[VanillaScan] Attempting load from: {folder}");
         
                 //LoadVanillaHand(folder, jsonPath);
                 result[jsonPath] = folder;
@@ -129,7 +130,7 @@ public class ResourcefulHandsPatches
 
                 if (handsDict == null || handsList == null || loadedList == null)
                 {
-                    RHLog.Error("[VanillaScan] Lists went null during the load call. This shouldn't happen.");
+                    ModLogger.Error("[VanillaScan] Lists went null during the load call. This shouldn't happen.");
                     return;
                 }
 
@@ -157,7 +158,7 @@ public class ResourcefulHandsPatches
                 }
                 catch
                 {
-                    RHLog.Warning($"Pack {item.cosmeticInfo.cosmeticName}'s card-background failed to load");
+                    ModLogger.Warning($"Pack {item.cosmeticInfo.cosmeticName}'s card-background failed to load");
                 }
 
                 try
@@ -167,7 +168,7 @@ public class ResourcefulHandsPatches
                 }
                 catch
                 {
-                    RHLog.Warning($"Pack {item.cosmeticInfo.cosmeticName}'s card-foreground failed to load");
+                    ModLogger.Warning($"Pack {item.cosmeticInfo.cosmeticName}'s card-foreground failed to load");
                 }
 
                 // Call internal Initialize
@@ -209,11 +210,11 @@ public class ResourcefulHandsPatches
                 if (SettingsManager.settings?.cosmeticSaveData != null)
                     SettingsManager.settings.cosmeticSaveData.FillNewCosmeticInfo(item);
 
-                RHLog.Info($"[VanillaScan] Successfully injected: {data.cosmeticName}");
+                ModLogger.Info($"[VanillaScan] Successfully injected: {data.cosmeticName}");
             }
             catch (Exception ex)
             {
-                RHLog.Error($"[VanillaScan] Failed loading {subdir}: {ex}");
+                ModLogger.Error($"[VanillaScan] Failed loading {subdir}: {ex}");
             }
         }
 
@@ -271,7 +272,7 @@ public class ResourcefulHandsPatches
 
                 menu.cosmeticPages.Add(rhPage);
                 menu.FillCosmeticPage(OF_CosmeticPage.instance.RHHands, "Only RH", rhPage);
-                RHLog.Info("RH Cosmetics dynamically injected into UI.");
+                ModLogger.Info("RH Cosmetics dynamically injected into UI.");
             }
         }
     }

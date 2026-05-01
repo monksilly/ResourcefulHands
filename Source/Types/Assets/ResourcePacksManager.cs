@@ -5,6 +5,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using BepInEx;
+using ResourcefulHands.Assets;
+using ResourcefulHands.Core;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -60,7 +62,7 @@ public static class ResourcePacksManager
     {
         get
         {
-            if (Plugin.IsDemo)
+            if (ModState.IsDemo())
             {
                 return new Dictionary<string, string>
                 {
@@ -234,7 +236,7 @@ public static class ResourcePacksManager
 
         if (nextPackIndex == packIndex)
         {
-            RHLog.Warning("Can't move pack out of range");
+            ModLogger.Warning("Can't move pack out of range");
             return;
         }
 
@@ -268,7 +270,7 @@ public static class ResourcePacksManager
         
         foreach (var disabledPackGuid in disabledPacks)
         {
-            RHLog.Debug($"{disabledPackGuid} is a disabled pack.");
+            ModLogger.Debug($"{disabledPackGuid} is a disabled pack.");
             foreach (var pack in LoadedPacks.Where(pack => pack.guid == disabledPackGuid))
                 pack.IsActive = false;
         }
@@ -332,19 +334,19 @@ public static class ResourcePacksManager
     {
         if (_isReloading && !waitTillReady)
         {
-            RHLog.Warning("Tried to reload while already reloading?");
+            ModLogger.Warning("Tried to reload while already reloading?");
             return false;
         }
 
-        RHLog.Debug("Dispatching pack reloader task...");
+        ModLogger.Debug("Dispatching pack reloader task...");
         Task.Run(async () =>
         {
             if (_isReloading && waitTillReady)
             {
-                RHLog.Debug("Waiting for previous reload...");
+                ModLogger.Debug("Waiting for previous reload...");
                 while (_isReloading)
                     await Task.Delay(125);
-                RHLog.Debug("Reloading...");
+                ModLogger.Debug("Reloading...");
             }
             
             await ReloadPacks_Internal();
@@ -358,16 +360,16 @@ public static class ResourcePacksManager
 
     public static async Task InitLoad()
     {
-        RHLog.Info("Initializing loading...");
+        ModLogger.Info("Initializing loading...");
         if (HasLoadedOnInit)
         {
-            RHLog.Warning("Tried to Init while it's already initialized?");
+            ModLogger.Warning("Tried to Init while it's already initialized?");
             return;
         }
 
         _isReloading = false;
         await ReloadPacks_Internal();
-        RHLog.Info("Initialized loading.");
+        ModLogger.Info("Initialized loading.");
     }
     
     internal static async Task ReloadPacks_Internal()
@@ -377,19 +379,19 @@ public static class ResourcePacksManager
         HasPacksChanged = false;
         if (LoadedPacks.Count != 0)
         {
-            RHLog.Debug("Saving packs before reloading!");
+            ModLogger.Debug("Saving packs before reloading!");
             Save();
         }
         
         _isReloading = true;
         LoadedPacks.Clear();
-        RHLog.Info($"Expanding zips in {RHConfig.PacksFolder}...");
+        ModLogger.Info($"Expanding zips in {RHConfig.PacksFolder}...");
         string[] zipPaths = Directory.GetFiles(RHConfig.PacksFolder, "*.zip", SearchOption.TopDirectoryOnly);
         foreach (string zipPath in zipPaths)
         {
             try
             {
-                RHLog.Info($"Expanding resource pack zip: {zipPath}");
+                ModLogger.Info($"Expanding resource pack zip: {zipPath}");
                 bool isTopLevelZip;
                 using (ZipArchive zip = ZipFile.OpenRead(zipPath))
                     isTopLevelZip = zip.GetEntry("info.json") != null;
@@ -403,15 +405,15 @@ public static class ResourcePacksManager
                     ZipFile.ExtractToDirectory(zipPath, RHConfig.PacksFolder);
                 
                 File.Delete(zipPath);
-                RHLog.Info($"Expanded!");
+                ModLogger.Info($"Expanded!");
             }
             catch (Exception e)
             {
-                RHLog.Info($"Failed to expand!");
-                RHLog.Error(e);
+                ModLogger.Info($"Failed to expand!");
+                ModLogger.Error(e);
             }
         }
-        RHLog.Info("Loading resource packs...");
+        ModLogger.Info("Loading resource packs...");
         List<string> paths = new();
         paths.AddRange(Directory.GetDirectories(RHConfig.PacksFolder, "*", SearchOption.TopDirectoryOnly));
         paths.AddRange(Directory.GetDirectories(Paths.PluginPath, "*", SearchOption.AllDirectories)); // check sub dirs for plugins
@@ -425,41 +427,41 @@ public static class ResourcePacksManager
             
             try
             {
-                RHLog.Info($"Loading resource pack: {path}");
+                ModLogger.Info($"Loading resource pack: {path}");
                 ResourcePack? pack = await ResourcePack.Load(path);
                 if (pack == null)
                 {
-                    RHLog.Warning($"Failed to load pack at {path}!");
+                    ModLogger.Warning($"Failed to load pack at {path}!");
                     failedPacks++;
                     continue;
                 }
 
                 LoadedPacks.Add(pack);
-                RHLog.Info($"Loaded!");
+                ModLogger.Info($"Loaded!");
             }
             catch (Exception e)
             {
                 failedPacks++;
-                RHLog.Info($"Failed to load!");
-                RHLog.Error(e);
+                ModLogger.Info($"Failed to load!");
+                ModLogger.Error(e);
             }
         }
 
-        RHLog.Info($"Loaded {LoadedPacks.Count}/{LoadedPacks.Count + failedPacks} resource packs");
+        ModLogger.Info($"Loaded {LoadedPacks.Count}/{LoadedPacks.Count + failedPacks} resource packs");
         if (failedPacks > 0)
-            RHLog.Warning($"{failedPacks} packs failed to load!");
+            ModLogger.Warning($"{failedPacks} packs failed to load!");
 
         await CoroutineDispatcher.RunOnMainThreadAndWait(() =>
         {
             _isReloading = false; // no longer reloading resource packs, we can load and save orders,ect
             
-            RHLog.Info("Re-ordering to user order...");
+            ModLogger.Info("Re-ordering to user order...");
             LoadPackOrder();
-            RHLog.Info("Disabling packs that should be disabled...");
+            ModLogger.Info("Disabling packs that should be disabled...");
             LoadDisabledPacks();
             
             // attempt to refresh previously loaded stuff
-            Plugin.RefreshAllAssets(false);
+            AssetRefresher.RefreshAll();
 
             // just incase
             if (UI_RHPacksList.Instance)
