@@ -72,6 +72,8 @@ public class Plugin : BaseUnityPlugin
     {
         ModLogger.InitLog(Logger);
         VersionChecker.Check();
+     
+        gameObject.hideFlags = HideFlags.HideAndDontSave;
         
         Task.Run(ResourcePacksManager.InitLoad);
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
