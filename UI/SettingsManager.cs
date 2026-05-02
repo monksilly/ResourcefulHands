@@ -16,24 +16,23 @@ namespace ResourcefulHands.UI;
 
 public static class RHSettingsManager
 {
-    private static TMP_FontAsset? _fontAsset = null;
     public static TMP_FontAsset? UiFont {
         get
         {
-            if (_fontAsset != null) return _fontAsset;
+            if (field != null) return field;
             
-            var fonts = Resources.FindObjectsOfTypeAll<TMPro.TMP_FontAsset>();
+            var fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             foreach (var font in fonts)
             {
                 if (!string.Equals(font.name, "Ticketing SDF", StringComparison.CurrentCultureIgnoreCase)) continue;
                     
-                _fontAsset = font;
+                field = font;
                 break;
             }
-            return _fontAsset;
+            return field;
         }
-    }
-    
+    } = null;
+
     /// Creates and attaches the custom settings menu (pack selection) to the settings window.
     public static void LoadCustomSettings()
     {
@@ -177,7 +176,7 @@ public static class RHSettingsManager
     /// </summary>
     /// <param name="title">The title to show. (placed at the top)</param>
     /// <param name="text">The description to show. (placed roughly at the center)</param>
-    public static void ShowPopup(string title, string text)
+    public static void ShowPopupOld(string title, string text)
     {
         GameObject? popupPrefab = Plugin.Assets?.LoadAsset<GameObject>("Popup-Root");
         if (popupPrefab == null) return;
@@ -210,7 +209,7 @@ public static class RHSettingsManager
     /// It has the RH logo at the left and text on the right.
     /// </summary>
     /// <param name="text"></param>
-    public static void ShowNotice(string text)
+    public static void ShowNoticeOld(string text)
     {
         GameObject? popupPrefab = Plugin.Assets?.LoadAsset<GameObject>("Notice-Root");
         if (popupPrefab == null) return;

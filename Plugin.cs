@@ -68,24 +68,14 @@ public class Plugin : BaseUnityPlugin
     private static int _mainThreadId;
     public void Awake()
     {
-        if (Chainloader.PluginInfos.ContainsKey(DeprecatedRHGuid))
-        {
-            var oldModInfo = Chainloader.PluginInfos[DeprecatedRHGuid];
-            ModLogger.Warning($"Detected deprecated mod [{oldModInfo.Metadata.Name}]. Disabling it...");
-
-            var oldModInstance = oldModInfo.Instance;
-
-            if (oldModInstance != null)
-            {
-                oldModInstance.enabled = false;
-                
-                Harmony.UnpatchID(DeprecatedRHGuid);
-                
-                Destroy(oldModInstance.gameObject);
-            }
-        }
-        
         ModLogger.InitLog(Logger);
+        
+        ModLogger.Debug("Patching...");
+        Harmony = new Harmony(Guid);
+        Harmony.PatchAll();
+        // Check for old RH and disable if found
+        CheckDeprecation();
+        // Checks if the mod is in any compatible version!
         VersionChecker.Check();
         
         Task.Run(ResourcePacksManager.InitLoad);
@@ -93,105 +83,30 @@ public class Plugin : BaseUnityPlugin
         
         Instance = this;
         RHConfig.InitConfigs();
-        
-        ModLogger.Debug("Patching...");
-        Harmony = new Harmony(Guid);
-        Harmony.PatchAll();
 
         ModLogger.Debug("Hooking loaded event...");
         var hasLoadedIntro = false;
-        SceneManager.sceneLoaded += (scene, mode) =>
-        {
-            CosmeticSystem.EnsureExists();
-            targetFps = Application.targetFrameRate;
-            ModLogger.Debug("Evaluating newly loaded scene...");
-            if(!scene.name.ToLower().Contains("intro") && !hasLoadedIntro)
-            {
-                hasLoadedIntro = true;
-                ModLogger.Info("Loading internal assets...");
-                Assets?.LoadAllAssets();
-
-                if (RHConfig.UseOldSprReplace)
-                {
-                    ModLogger.Info("Hooking sprite replacer...");
-                    CoroutineDispatcher.AddToUpdate(() =>
-                    {
-                        var spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
-                        
-                        foreach (var sr in spriteRenderers)
-                            SpriteRendererPatches.Patch(sr);
-                    });
-                }
-                else // TODO: eventually improve this to edit animators or sum?
-                {
-                    ModLogger.Info("Queuing sprite replacer...");
-                    CoroutineDispatcher.RunOnMainThread(() => //create isolated local context
-                    {
-                        var spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
-                        var lastTick = Time.time;
-                        
-                        // currently the old tick speed was too slow and caused 
-                        // sprites to flicker when spawned in (which i was trying to fix with InstantiatePatches)
-                        // so i've reduced it until we have a better solution
-                        const float tickSpace = 1.0f/60.0f;
-                        
-                        Coroutine? c = null;
-                        void CreateCoroutine()
-                        {
-                            if (c != null)
-                                CoroutineDispatcher.StopDispatch(c);
-                            
-                            IEnumerator PollSpriteRenderers()
-                            {
-                                while (true)
-                                {
-                                    spriteRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
-                                    lastTick = Time.time;
-                                    yield return new WaitForSeconds(tickSpace);
-                                }
-                                // ReSharper disable once IteratorNeverReturns
-                            }
-                            c = CoroutineDispatcher.Dispatch(PollSpriteRenderers());
-                        }
-                        CreateCoroutine();
-                        
-                        CoroutineDispatcher.AddToUpdate(() =>
-                        {
-                            if (Time.time - lastTick > tickSpace * 32.0f)
-                            {
-                                ModLogger.Warning("Sprite finder thread has been dead for a while, restarting...");
-                                CreateCoroutine();
-                            }
-                            
-                            foreach (var sr in spriteRenderers)
-                                SpriteRendererPatches.Patch(sr);
-                        });
-                    });
-                }
-                
-                ModLogger.Info("Loading debug tools...");
-                RHDebugTools.Create();
-            }
-            
-            if (!hasLoadedIntro)
-                return;
-            
-            ModLogger.Info("Checking packs state...");
-            if (ResourcePacksManager.HasPacksChanged)
-                ResourcePacksManager.ReloadPacks(callback:(() =>
-                { RHSettingsManager.ShowNotice("Packs have been auto reloaded!"); }));
-            
-            ModLogger.Info("Refreshing custom commands...");
-            RHCommands.RefreshCommands();
-
-            ModLogger.Info("Loading settings menu...");
-            RHSettingsManager.LoadCustomSettings();
-            
-            ModLogger.Info("Refreshing assets...");
-            // RefreshAllAssets();
-        };
+        SceneManager.sceneLoaded += SceneHandler.OnSceneLoaded;
         
-        ModLogger.Message("Resourceful Hands has loaded!");
+        ModLogger.Info("Resourceful Hands has loaded!");
+    }
+
+    private void CheckDeprecation()
+    {
+        if (!Chainloader.PluginInfos.ContainsKey(DeprecatedRHGuid)) return;
+        
+        var oldModInfo = Chainloader.PluginInfos[DeprecatedRHGuid];
+        ModLogger.Warning($"Detected deprecated mod [{oldModInfo.Metadata.Name}]. Disabling it...");
+
+        var oldModInstance = oldModInfo.Instance;
+
+        if (oldModInstance == null) return;
+        
+        oldModInstance.enabled = false;
+                
+        Harmony.UnpatchID(DeprecatedRHGuid);
+                
+        Destroy(oldModInstance.gameObject);
     }
 }
 // amongus sungus

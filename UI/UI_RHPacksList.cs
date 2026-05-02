@@ -96,7 +96,7 @@ public class UI_RHPacksList : MonoBehaviour
             if (!ResourcePacksManager.IsUsingRHPacksFolder || RHSettingsManager.HasShownRHConfigNotice) return;
                         
             RHSettingsManager.HasShownRHConfigNotice = true;
-            RHSettingsManager.ShowPopup("Warning - RHPacks", "Some packs that you are using use the RHPacks folder, it is recommended that they use the plugins folder instead.\nPlease notify the developers of these packs if they don't know already.");
+            RHSettingsManager.ShowPopupOld("Warning - RHPacks", "Some packs that you are using use the RHPacks folder, it is recommended that they use the plugins folder instead.\nPlease notify the developers of these packs if they don't know already.");
         });
     }
     
