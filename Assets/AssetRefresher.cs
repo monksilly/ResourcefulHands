@@ -25,7 +25,8 @@ public static class AssetRefresher
 
         foreach (var audioSource in AllAudioSources)
         {
-            AudioSourcePatches.SwapClip(audioSource);
+            // TODO: Remove if not needed
+            //AudioSourcePatches.SwapClip(audioSource);
             if (audioSource.isPlaying && audioSource.time < 0.1 && audioSource.enabled &&
                 audioSource.gameObject.activeInHierarchy)
                 RHDebugTools.QueueSound(audioSource.clip);

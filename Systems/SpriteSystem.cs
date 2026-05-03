@@ -64,7 +64,8 @@ public static class SpriteSystem
 
         foreach (var sr in _activeRenderers)
         {
-            if (sr != null) SpriteRendererPatches.Patch(sr);
+            // TODO: Remove if not needed
+            // if (sr != null) SpriteRendererPatches.Patch(sr);
         }
     }
 
@@ -73,7 +74,8 @@ public static class SpriteSystem
         var renderers = Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         foreach (var sr in renderers)
         {
-            SpriteRendererPatches.Patch(sr);
+            // TODO: Remove if not needed
+            // SpriteRendererPatches.Patch(sr);
         }
     }
 }

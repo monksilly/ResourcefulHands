@@ -32,6 +32,8 @@ public class OF_CosmeticPage : MonoBehaviour
     
     private void Awake()
     {
+        // TODO: Remove soon, as its unneeded as of now
+        return;
         if (!instance)
             instance = this;
         else
