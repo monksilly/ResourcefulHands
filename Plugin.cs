@@ -23,6 +23,7 @@ namespace ResourcefulHands;
 // TODO: test for/fix crash when quitting game (unsure but this has happened at-least twice, possible due to the use of DebugTools.cs?)
 
 [BepInPlugin(Guid, Name, Version)] // Resourceful Hands
+[BepInDependency(DeprecatedRHGuid, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "monksilly.resourcefulhands";
