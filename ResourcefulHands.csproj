@@ -41,10 +41,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="rh_assets.bundle" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="ALINE">
       <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/ALINE.dll</HintPath>
       <Private>false</Private>
