@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -198,7 +198,7 @@ public static class ResourcePacksManager
         if (og) return og; // fallback
         
         if (textureName is "DeathFloor_02" or "_CORRUPTTEXTURE")
-            return Plugin.CorruptionTexture;
+            return new Texture2D(2, 2);
         
         return null;
     }
@@ -464,8 +464,8 @@ public static class ResourcePacksManager
             AssetRefresher.RefreshAll();
 
             // just incase
-            if (UI_RHPacksList.Instance)
-                UI_RHPacksList.Instance?.BuildList();
+            //if (UI_RHPacksList.Instance)
+            //    UI_RHPacksList.Instance?.BuildList();
 
             _initialLoadSource.TrySetResult(true);
         });

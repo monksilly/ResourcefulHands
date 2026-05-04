@@ -33,37 +33,12 @@ public class Plugin : BaseUnityPlugin
     
     public GameObject? ofHolder;
     
-    private static AssetBundle? _assets;
-    public static AssetBundle? Assets
-    {
-        get
-        {
-            if (_assets) return _assets;
-            
-            var assembly = Assembly.GetExecutingAssembly();
-            const string resourceName = $"ResourcefulHands.rh_assets.bundle";
-            using var stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream != null)
-                _assets = AssetBundle.LoadFromStream(stream);
-
-            CorruptionTexture = (_assets?.LoadAsset<Texture2D>("Corruption1"));
-            Icon = (_assets?.LoadAsset<Texture2D>("icon"));
-            IconGray = (_assets?.LoadAsset<Texture2D>("gray_icon"));
-            
-            return _assets;
-        }
-        private set => _assets = value;
-    }
-    public static Texture2D? CorruptionTexture;
-    public static Texture2D? Icon;
-    public static Texture2D? IconGray;
-    
     public static Plugin Instance { get; private set; } = null!;
 
     private Harmony? Harmony { get; set; }
 
     // TODO: remove jank
-    internal static int targetFps = 60;
+    internal static int TargetFps = 60;
     public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     public static bool IsMainThread => System.Threading.Thread.CurrentThread.ManagedThreadId == _mainThreadId;
     private static int _mainThreadId;
@@ -110,4 +85,4 @@ public class Plugin : BaseUnityPlugin
         Destroy(oldModInstance.gameObject);
     }
 }
-// amongus sungus
+// amongus sungus bongus

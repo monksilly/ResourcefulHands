@@ -237,7 +237,7 @@ public class ResourcePack
             ModLogger.Warning($"{path} doesn't have an pack.png! (icon path: '{pack.relativeIconPath}')");
             await CoroutineDispatcher.RunOnMainThreadAndWait(() =>
             {
-                pack.Icon = Plugin.IconGray ?? new Texture2D(2,2);
+                pack.Icon = new Texture2D(2,2);
             });
         }
         else

@@ -78,7 +78,7 @@ internal class CoroutineDispatcher : MonoBehaviour
             hasRan = true;
         });
 
-        int fps = Mathf.Clamp(Plugin.targetFps, -1, 120);
+        int fps = Mathf.Clamp(Plugin.TargetFps, -1, 120);
         if (fps < 1) fps = 60;
         
         // wait at around the speed of the current fps
