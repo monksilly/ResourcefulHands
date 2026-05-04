@@ -88,6 +88,7 @@ public class Plugin : BaseUnityPlugin
         ModLogger.Debug("Initializing UI");
         WKLibAPI.AddToModList(new ModListTab());
         WKLibAPI.AddWindow(WindowsDeclarations.PacksWindow);
+        WKLibAPI.AddWindow(WindowsDeclarations.SettingsWindow);
         
         ModLogger.Debug("Hooking loaded event...");
         var hasLoadedIntro = false;

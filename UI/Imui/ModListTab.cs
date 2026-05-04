@@ -15,7 +15,11 @@ public class ModListTab : WKLib.API.UI.ModTab
         if (gui.Button("Pack menu"))
         {
             PacksWindow.isOpen = !PacksWindow.isOpen;
-        } 
+        }
         
+        if (gui.Button("Settings menu"))
+        {
+            SettingsWindow.isOpen = !SettingsWindow.isOpen;
+        }
     }
 }
