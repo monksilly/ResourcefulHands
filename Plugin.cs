@@ -68,11 +68,7 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
         RHConfig.InitConfigs();
         
-        ModLogger.Debug("Patching...");
-        Harmony = new Harmony(Guid);
-        Harmony.PatchAll();
-        
-        ModLogger.Debug("Initializing UI");
+        ModLogger.Debug("Initializing UI...");
         WKLibAPI.AddToModList(new ModListTab());
         WKLibAPI.AddWindow(WindowsDeclarations.PacksWindow);
         WKLibAPI.AddWindow(WindowsDeclarations.SettingsWindow);
