@@ -95,6 +95,10 @@ public class PacksMenu : WKLibWindow
         gui.Separator("Active packs");
         gui.BeginList((gui.GetLayoutWidth(), gui.GetLayoutHeight()));
         var grid = gui.BeginGrid(1, cellHeight);
+
+        bool movePackUp = false;
+        bool movePackDown = false;
+        int movedPackIndex = -1;
         
         for (int i = 0; i < ResourcePacksManager.ActivePacks.Length; i++)
         {   
@@ -154,18 +158,98 @@ public class PacksMenu : WKLibWindow
 
             if (isFirstElement)
             {
-                DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+                movePackDown = DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
             }
             else if (isLastElement)
             {
-                DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+                movePackUp = DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
             }
             else
             {
-                DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
-                DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+                movePackUp = DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+                movePackDown = DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+            }
+
+            if (movePackDown || movePackUp)
+            {
+                // Find original index in loadedpacks
+                for (int j = 0; j < ResourcePacksManager.LoadedPacks.Count; j++)
+                {
+                    if (ResourcePacksManager.LoadedPacks[j] == loadedPack)
+                    {
+                        movedPackIndex = j;
+                        break;
+                    }
+                }
             }
         }
+
+        if (movedPackIndex >= 0 && movedPackIndex < ResourcePacksManager.LoadedPacks.Count)
+        {
+            if (movePackUp)
+            {
+                int lastActivePackIndex = -1;
+                
+                for (int i = 0; i < ResourcePacksManager.LoadedPacks.Count; i++)
+                {
+                    var loadedPack = ResourcePacksManager.LoadedPacks[i];
+                    if (!loadedPack.IsActive)
+                        continue;
+
+                    if (i >= movedPackIndex)
+                        break;
+
+                    lastActivePackIndex = i;
+                }
+
+                var loadedPacks = ResourcePacksManager.LoadedPacks;
+                var movedPack = loadedPacks[movedPackIndex]; // Copy pack temp
+
+                loadedPacks.RemoveAt(movedPackIndex);
+
+                int insertIndex = lastActivePackIndex >= 0 ? lastActivePackIndex : 0;
+
+                // Adjust index if removal shifted it
+                if (insertIndex > movedPackIndex)
+                    insertIndex--;
+
+                loadedPacks.Insert(insertIndex, movedPack);
+            }
+            else if (movePackDown)
+            {
+                int nextActivePackIndex = -1;
+
+                for (int i = movedPackIndex + 1; i < ResourcePacksManager.LoadedPacks.Count; i++)
+                {
+                    var loadedPack = ResourcePacksManager.LoadedPacks[i];
+                    if (!loadedPack.IsActive)
+                        continue;
+
+                    nextActivePackIndex = i;
+                    break;
+                }
+
+                var loadedPacks = ResourcePacksManager.LoadedPacks;
+                var movedPack = loadedPacks[movedPackIndex];
+
+                loadedPacks.RemoveAt(movedPackIndex);
+
+                int insertIndex = -1;
+
+                if (nextActivePackIndex >= 0)
+                {
+                    insertIndex = nextActivePackIndex;
+                }
+                else
+                {
+                    // No active pack below, move to end
+                    insertIndex = loadedPacks.Count;
+                }
+
+                loadedPacks.Insert(insertIndex, movedPack);
+            }
+        }
+        
         gui.EndGrid(in grid);
         gui.EndList(flags: scrollBarFlags);
 
@@ -183,6 +267,8 @@ public class PacksMenu : WKLibWindow
         gui.Separator("Inactive packs");
         gui.BeginList((gui.GetLayoutWidth(), gui.GetLayoutHeight()));
         var grid = gui.BeginGrid(1, cellHeight);
+
+        int makeActivePackIndex = -1;
         
         for (int i = 0; i < ResourcePacksManager.LoadedPacks.Count; i++)
         {   
@@ -229,12 +315,27 @@ public class PacksMenu : WKLibWindow
             if (!isGridHovered)
                 continue;
 
-            var makeActiveRect = DrawMakeActive(gui, ref loadedPack, gridRect, titleRect, cellHeight, cellWidth);
+            bool pressed = DrawMakeActive(gui, ref loadedPack, gridRect, titleRect, cellHeight, cellWidth, out var makeActiveRect);
+            if (pressed)
+            {
+                loadedPack.IsActive = true;
+                makeActivePackIndex = i;
+            }
             
             cellWidth -= (makeActiveRect.W + spacing);
             if (cellWidth <= 0f)
                 continue;
         }
+
+        if (makeActivePackIndex != -1)
+        {
+            var loadedPacks = ResourcePacksManager.LoadedPacks;
+            var makeActivePack = loadedPacks[makeActivePackIndex]; // Copy pack
+
+            loadedPacks.RemoveAt(makeActivePackIndex);
+            loadedPacks.Insert(0, makeActivePack);
+        }
+        
         gui.EndGrid(in grid);
         gui.EndList(flags: scrollBarFlags);
 
@@ -335,7 +436,7 @@ public class PacksMenu : WKLibWindow
         return descriptionRect;
     }
     
-    private ImRect DrawMakeActive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private bool DrawMakeActive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth, out ImRect rect)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -355,14 +456,13 @@ public class PacksMenu : WKLibWindow
             makeActiveRect.H = makeActiveHeight;
             makeActiveRect.W = makeActiveWidth;
         }
+        
+        rect = makeActiveRect;
+        
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(makeActiveRect, new Color32(0, 67, 245, 255), 2f, 0f);
 
-        if (gui.Button(">", makeActiveRect))
-        {
-            loadedPack.IsActive = true;
-        }
-        return makeActiveRect;
+        return gui.Button(">", makeActiveRect);
     }
     
     private ImRect DrawMakeInactive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, bool isOnlyElement, float cellHeight, float cellWidth)
@@ -396,7 +496,7 @@ public class PacksMenu : WKLibWindow
         return makeInactiveRect;
     }
 
-    private ImRect DrawMoveUp(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private bool DrawMoveUp(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -420,11 +520,10 @@ public class PacksMenu : WKLibWindow
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(moveUpRect, new Color32(0, 67, 245, 255), 2f, 0f);
     
-        gui.Button("^", moveUpRect);
-        return moveUpRect;
+        return gui.Button("^", moveUpRect);
     }
     
-    private ImRect DrawMoveDown(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private bool DrawMoveDown(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -447,8 +546,7 @@ public class PacksMenu : WKLibWindow
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(moveDownRect, new Color32(0, 67, 245, 255), 2f, 0f);
     
-        gui.Button("v", moveDownRect);
-        return moveDownRect;
+        return gui.Button("v", moveDownRect);
     }
     #endregion
 
