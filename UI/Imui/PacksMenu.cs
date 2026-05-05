@@ -96,8 +96,9 @@ public class PacksMenu : WKLibWindow
         gui.BeginList((gui.GetLayoutWidth(), gui.GetLayoutHeight()));
         var grid = gui.BeginGrid(1, cellHeight);
         
-        foreach (var loadedPack in ResourcePacksManager.ActivePacks)
+        for (int i = 0; i < ResourcePacksManager.ActivePacks.Length; i++)
         {   
+            ref var loadedPack = ref ResourcePacksManager.ActivePacks[i];
             if (loadedPack == null)
                 continue;
 
@@ -137,14 +138,33 @@ public class PacksMenu : WKLibWindow
             if (!isGridHovered)
                 continue;
 
-            var makeInactiveRect = DrawMakeInactive(gui, loadedPack, gridRect, titleRect, cellHeight, cellWidth);
+            bool isOnlyElement = ResourcePacksManager.ActivePacks.Length == 1;
+            var makeInactiveRect = DrawMakeInactive(gui, ref loadedPack, gridRect, titleRect, isOnlyElement, cellHeight, cellWidth);
             
             cellWidth -= (makeInactiveRect.W + spacing);
             if (cellWidth <= 0f)
                 continue;
             
-            var moveUpRect = DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
-            var moveDownRect = DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+            bool isFirstElement = i == 0;
+            bool isLastElement = i == (ResourcePacksManager.ActivePacks.Length - 1);
+            
+            // Dont draw priority if theres only 1 active pack
+            if (isOnlyElement)
+                continue;
+
+            if (isFirstElement)
+            {
+                DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+            }
+            else if (isLastElement)
+            {
+                DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+            }
+            else
+            {
+                DrawMoveUp(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+                DrawMoveDown(gui, loadedPack, gridRect, makeInactiveRect, cellHeight, cellWidth);
+            }
         }
         gui.EndGrid(in grid);
         gui.EndList(flags: scrollBarFlags);
@@ -164,9 +184,13 @@ public class PacksMenu : WKLibWindow
         gui.BeginList((gui.GetLayoutWidth(), gui.GetLayoutHeight()));
         var grid = gui.BeginGrid(1, cellHeight);
         
-        foreach (var loadedPack in ResourcePacksManager.LoadedPacks)
-        {
+        for (int i = 0; i < ResourcePacksManager.LoadedPacks.Count; i++)
+        {   
+            var loadedPack = ResourcePacksManager.LoadedPacks[i];
             if (loadedPack == null)
+                continue;
+
+            if (loadedPack.IsActive)
                 continue;
 
             if (isSearching)
@@ -205,7 +229,7 @@ public class PacksMenu : WKLibWindow
             if (!isGridHovered)
                 continue;
 
-            var makeActiveRect = DrawMakeActive(gui, loadedPack, gridRect, titleRect, cellHeight, cellWidth);
+            var makeActiveRect = DrawMakeActive(gui, ref loadedPack, gridRect, titleRect, cellHeight, cellWidth);
             
             cellWidth -= (makeActiveRect.W + spacing);
             if (cellWidth <= 0f)
@@ -311,7 +335,7 @@ public class PacksMenu : WKLibWindow
         return descriptionRect;
     }
     
-    private ImRect DrawMakeActive(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private ImRect DrawMakeActive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -333,18 +357,21 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(makeActiveRect, new Color32(0, 67, 245, 255), 2f, 0f);
-    
-        gui.Button(">", makeActiveRect);
+
+        if (gui.Button(">", makeActiveRect))
+        {
+            loadedPack.IsActive = true;
+        }
         return makeActiveRect;
     }
     
-    private ImRect DrawMakeInactive(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private ImRect DrawMakeInactive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, bool isOnlyElement, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
         var previousRectXPos = Math.Abs(previousRect.X - gridRect.X); // Calculate relative position, since the X value is global and we need the local pos
         
-        var makeInactiveWidth = (cellWidth * 0.5f) - (spacing * 2f);
+        var makeInactiveWidth = (cellWidth * (isOnlyElement ? 1f : 0.5f)) - (spacing * 2f);
         var makeInactiveHeight = (cellHeight * 1f) - (spacing * 2f);
 
         var makeInactiveXPos = previousRectXPos + previousRect.W + spacing;
@@ -361,7 +388,11 @@ public class PacksMenu : WKLibWindow
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(makeInactiveRect, new Color32(0, 67, 245, 255), 2f, 0f);
     
-        gui.Button("<", makeInactiveRect);
+        if (gui.Button("<", makeInactiveRect))
+        {
+            loadedPack.IsActive = false;
+        }
+        
         return makeInactiveRect;
     }
 
