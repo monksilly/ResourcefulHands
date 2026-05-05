@@ -71,21 +71,6 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="BepInEx.Harmony">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.Harmony.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="BepInEx.Preloader">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/BepInEx.Preloader.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
     <Reference Include="Clipper2Lib">
       <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Clipper2Lib.dll</HintPath>
       <Private>false</Private>
@@ -136,33 +121,8 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Mdb.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Pdb.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/Mono.Cecil.Rocks.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/MonoMod.RuntimeDetour.dll</HintPath>
-      <Private>false</Private>
-      <CopyLocal>false</CopyLocal>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>$(WhiteKnuckleDir)Bepinex/MonoMod.Utils.dll</HintPath>
+    <Reference Include="ImuiBepInEx">
+      <HintPath>Libs\ImuiBepInEx.dll</HintPath>
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
@@ -718,6 +678,11 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
+    <Reference Include="WKLib">
+      <HintPath>Libs\WKLib.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
     <Reference Include="XNode">
       <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/XNode.dll</HintPath>
       <Private>false</Private>
@@ -731,6 +696,10 @@
     <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
     <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
     <Content Include="ResourcefulHands.csproj.user" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Libs\" />
   </ItemGroup>
 
 </Project>

@@ -14,14 +14,17 @@ using ResourcefulHands.Core;
 using ResourcefulHands.Patches;
 using ResourcefulHands.Systems;
 using ResourcefulHands.UI;
+using ResourcefulHands.UI.Imui;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using WKLib.API;
 
 namespace ResourcefulHands;
 
 // TODO: test for/fix crash when quitting game (unsure but this has happened at-least twice, possible due to the use of DebugTools.cs?)
 
+[BepInDependency(WKLib.WKLibPlugin.GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(Guid, Name, Version)] // Resourceful Hands
 [BepInDependency(DeprecatedRHGuid, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
@@ -37,6 +40,8 @@ public class Plugin : BaseUnityPlugin
     public static Plugin Instance { get; private set; } = null!;
 
     private Harmony? Harmony { get; set; }
+
+    public static WKLibAPI WKLibAPI = WKLibAPI.Create(Name, Guid);
 
     // TODO: remove jank
     internal static int TargetFps = 60;
@@ -54,13 +59,24 @@ public class Plugin : BaseUnityPlugin
         CheckDeprecation();
         // Checks if the mod is in any compatible version!
         VersionChecker.Check();
+     
+        gameObject.hideFlags = HideFlags.HideAndDontSave;
         
         Task.Run(ResourcePacksManager.InitLoad);
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         
         Instance = this;
         RHConfig.InitConfigs();
-
+        
+        ModLogger.Debug("Patching...");
+        Harmony = new Harmony(Guid);
+        Harmony.PatchAll();
+        
+        ModLogger.Debug("Initializing UI");
+        WKLibAPI.AddToModList(new ModListTab());
+        WKLibAPI.AddWindow(WindowsDeclarations.PacksWindow);
+        WKLibAPI.AddWindow(WindowsDeclarations.SettingsWindow);
+        
         ModLogger.Debug("Hooking loaded event...");
         var hasLoadedIntro = false;
         SceneManager.sceneLoaded += SceneHandler.OnSceneLoaded;
