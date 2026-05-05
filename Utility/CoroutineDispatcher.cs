@@ -1,0 +1,144 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using ResourcefulHands.Core;
+using UnityEngine;
+
+namespace ResourcefulHands;
+
+internal class CoroutineDispatcher : MonoBehaviour
+{
+    private static CoroutineDispatcher? _instance;
+    private static Dictionary<string, Action> updateActions = new Dictionary<string, Action>();
+    public static Queue<Action> threadQueue = new Queue<Action>();
+
+    // WARNING: returns nill if not main thread
+    public static Coroutine? Dispatch(IEnumerator routine)
+    {
+        if (!Plugin.IsMainThread)
+        {
+            CoroutineDispatcher.RunOnMainThread(() =>
+            {
+                Dispatch(routine);
+            });
+            return null;
+        }
+
+        if (_instance == null)
+        {
+            _instance = new GameObject("CoroutineDispatcher").AddComponent<CoroutineDispatcher>();
+            DontDestroyOnLoad(_instance);
+        }
+        
+        return _instance.StartCoroutine(routine);
+    }
+    
+    // WARNING: returns false if not main thread
+    public static bool StopDispatch(Coroutine routine)
+    {
+        if (!Plugin.IsMainThread)
+        {
+            CoroutineDispatcher.RunOnMainThread(() =>
+            {
+                StopDispatch(routine);
+            });
+            return false;
+        }
+
+        if (_instance == null)
+        {
+            return false;
+        }
+        
+        _instance.StopCoroutine(routine);
+        return true;
+    }
+
+    /// <summary>
+    /// Same as <see cref="RunOnMainThread"/>, however used to halt execution of the current side thread until the action has ran on the main.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="lineNumber"></param>
+    /// <param name="file"></param>
+    public static async Task RunOnMainThreadAndWait(Action action,
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerFilePath] string file = "")
+    {
+        bool hasRan = false;
+        threadQueue.Enqueue(() =>
+        {
+            ModLogger.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
+            try
+            { action(); }
+            catch (Exception e)
+            { ModLogger.Error(e); }
+            hasRan = true;
+        });
+
+        int fps = Mathf.Clamp(Plugin.TargetFps, -1, 120);
+        if (fps < 1) fps = 60;
+        
+        // wait at around the speed of the current fps
+        // this isn't the exact fps because it would be overkill
+        while (!hasRan)
+            await Task.Delay(Mathf.FloorToInt((1.0f/fps)*1000)); 
+        
+        ModLogger.Debug($"[{Path.GetFileName(file)}:{lineNumber}] has executed!");
+    }
+    
+    /// <summary>
+    /// Queues the action to run on the next LateUpdate call i.e. the main unity thread.
+    /// </summary>
+    /// <param name="action"></param>
+    public static void RunOnMainThread(Action action)
+    {
+        threadQueue.Enqueue(action);
+    }
+    
+    /// <summary>
+    /// Same as <see cref="RunOnMainThread"/>, however this actually checks if the current thread is the main.
+    /// </summary>
+    /// <param name="action"></param>
+    public static void RunOnMainThreadOrCurrent(Action action)
+    {
+        if (Plugin.IsMainThread)
+        {
+            action();
+            return;
+        }
+        
+        threadQueue.Enqueue(action);
+    }
+
+    public static string AddToUpdate(Action action)
+    {
+        if (_instance == null)
+        {
+            _instance = new GameObject("CoroutineDispatcher").AddComponent<CoroutineDispatcher>();
+            DontDestroyOnLoad(_instance);
+        }
+        
+        string guid = Guid.NewGuid().ToString();
+        updateActions.Add(guid, action);
+        return guid;
+    }
+    public static void RemoveFromUpdate(string guid)
+    {
+        updateActions.Remove(guid);
+    }
+
+    public void LateUpdate()
+    {
+        foreach (var updateAction in updateActions.Values)
+            updateAction();
+
+        while (threadQueue.Count > 0)
+        {
+            Action action = threadQueue.Dequeue();
+            action?.Invoke();
+        }
+    }
+}
