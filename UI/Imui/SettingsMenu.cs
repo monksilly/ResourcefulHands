@@ -25,7 +25,6 @@ public class SettingsMenu : WKLibWindow
         
         gui.TooltipAtLastControl("Enabling this allows vanilla voice cosmetics to modify\nmore sounds outside of just player and movement sounds.");
         
-        
 #if DEBUG
         gui.Checkbox(ref DebugUIBoxes, "Debug UI Boxes");
 #endif
