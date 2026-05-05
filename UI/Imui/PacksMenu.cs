@@ -248,6 +248,8 @@ public class PacksMenu : WKLibWindow
 
                 loadedPacks.Insert(insertIndex, movedPack);
             }
+            
+            ResourcePacksManager.SavePackOrder();
         }
         
         gui.EndGrid(in grid);
@@ -334,6 +336,8 @@ public class PacksMenu : WKLibWindow
 
             loadedPacks.RemoveAt(makeActivePackIndex);
             loadedPacks.Insert(0, makeActivePack);
+            
+            ResourcePacksManager.SavePackOrder();
         }
         
         gui.EndGrid(in grid);
