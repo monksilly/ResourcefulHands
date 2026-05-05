@@ -11,6 +11,9 @@ public static class AssetLoader
 
     public static void LoadBundle()
     {
+        _bundle = null;
+        return;
+        // TODO: Remove this as its unneeded
         if (_bundle != null) return;
 
         var assembly = Assembly.GetExecutingAssembly();

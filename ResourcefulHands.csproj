@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>monksilly.ResourcefulHands</AssemblyName>
     <Product>Resourceful Hands</Product>
-    <Version>0.10.0</Version>
+    <Version>0.11.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>14.0</LangVersion>
     <IsPackable>false</IsPackable>
@@ -39,11 +39,6 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugType>full</DebugType>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="rh_assets.bundle" />
-    <None Remove="rh_assets.bundle" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="ALINE">

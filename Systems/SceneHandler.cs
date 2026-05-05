@@ -34,11 +34,7 @@ public static class SceneHandler
 
     private static void UpdateGlobalSystems()
     {
-        if (ResourcePacksManager.HasPacksChanged)
-            ResourcePacksManager.ReloadPacks(false, () => RHSettingsManager.ShowNotice("Packs auto-reloaded!"));
-
         RHCommands.RefreshCommands();
-        RHSettingsManager.LoadCustomSettings();
         AssetRefresher.RefreshAll();
     }
 }
