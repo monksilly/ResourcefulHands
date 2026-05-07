@@ -77,3 +77,77 @@ public static class ImagePatches
         __result = RHSpriteManager.GetReplacementSprite(__result) ?? __result;
     }
 }
+
+[HarmonyPatch(typeof(AudioSource))]
+internal static class AudioSourcePatches
+{
+    private static void Cache(AudioClip? clip)
+    {
+        if(clip == null) 
+            return;
+
+        OriginalAssetTracker.sounds.TryAdd(clip.name, clip);
+    }
+    
+    // Setters and Getters for clip are not needed,
+    // Patching the play functions is the better and 100% working way
+    
+    // Patch parameterless Play()
+    [HarmonyPatch(nameof(AudioSource.Play), [])]
+    [HarmonyPrefix]
+    private static void Play_NoArgs_Postfix(AudioSource __instance)
+        => SwapClip(__instance);
+
+    // Patch Play(double delay)
+    [HarmonyPatch(nameof(AudioSource.Play), new[] { typeof(double) })]
+    [HarmonyPrefix]
+    private static void Play_DelayDouble_Postfix(AudioSource __instance)
+        => SwapClip(__instance);
+
+    // Patch Play(ulong delaySamples)
+    [HarmonyPatch(nameof(AudioSource.Play), new[] { typeof(ulong) })]
+    [HarmonyPrefix]
+    private static void Play_DelayUlong_Postfix(AudioSource __instance)
+        => SwapClip(__instance);
+    
+    // Patch PlayOneShot(AudioClip)
+    [HarmonyPatch(nameof(AudioSource.PlayOneShot), typeof(AudioClip))]
+    [HarmonyPrefix]
+    private static void PlayOneShot_ClipOnly_Postfix(AudioSource __instance, ref AudioClip __0)
+    {
+        // if the original is already cached this will just silently fail
+        Cache(__instance.clip);
+        
+        var clip = ResourcePacksManager.GetSoundFromPacks(__instance.clip.name);
+        if (clip is not null)
+            __0 = clip;
+    }
+
+    // Patch PlayOneShot(AudioClip, float volumeScale)
+    [HarmonyPatch(nameof(AudioSource.PlayOneShot), typeof(AudioClip), typeof(float))]
+    [HarmonyPrefix]
+    private static void PlayOneShot_ClipAndVolume_Postfix(AudioSource __instance, ref AudioClip __0)
+    {
+        // if the original is already cached this will just silently fail
+        Cache(__instance.clip);
+        
+        var clip = ResourcePacksManager.GetSoundFromPacks(__instance.clip.name);
+        if (clip is not null)
+            __0 = clip;
+    }
+    
+    // Shared logic
+    internal static void SwapClip(AudioSource src)
+    {
+        if (src?.clip is null) 
+            return;
+
+        // if the original is already cached this will just silently fail
+        Cache(src.clip);
+        var clip = ResourcePacksManager.GetSoundFromPacks(src.clip.name);
+        if (clip is null) 
+            return;
+
+        src.clip = clip;
+    }
+}
