@@ -57,7 +57,7 @@ public static class CosmeticStructureRepairer
 
             // Parse JSON
             string jsonContent = File.ReadAllText(jsonPath);
-            var settings = JsonConvert.DeserializeObject<CosmeticSettings>(jsonContent);
+            var settings = JsonConvert.DeserializeObject<CosmeticPack>(jsonContent);
             if (settings == null)
             {
                 ModLogger.Error($"[Fixer] Failed to deserialize JSON at {jsonPath}");
