@@ -77,8 +77,6 @@ public class ResourcefulHandsPatches
                 if (File.Exists(Path.Combine(pluginFolder, "cosmetic-handitem-settings.json")))
                 {
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
-                    
-                    if (!ProcessedFolders.Add(parentFolder)) continue;
 
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
@@ -112,13 +110,13 @@ public class ResourcefulHandsPatches
                 {
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
                     
-                    if (!ProcessedFolders.Add(parentFolder)) continue;
-                    
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
                         actionDelegate, 
                         "cosmetic-voice-settings.json"
                     );
+                    
+                    ModLogger.Info("Found Voice Pack at: " + pluginFolder);
                 }
             }
             
