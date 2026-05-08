@@ -2,9 +2,12 @@ using System;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
+using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
 using ResourcefulHands.Systems;
 using ResourcefulHands.UI;
+using ResourcefulHands.Utility;
 using UnityEngine;
 
 namespace ResourcefulHands.Patches;
@@ -13,8 +16,6 @@ namespace ResourcefulHands.Patches;
 [HarmonyPatch]
 public class ResourcefulHandsPatches
 {
-    public static Traverse Trv(object obj) => Traverse.Create(obj);
-    
     [HarmonyPatch(typeof(CL_CosmeticManager))]
     public static class CL_CosmeticManager_Patches
     {
@@ -36,6 +37,8 @@ public class ResourcefulHandsPatches
         {
             ScanHandCosmetics();
             ScanVoiceCosmetics();
+            // TODO: Fix this so it works.
+            PackManager.GatherGameHandCosmetics();
         }
 
         private static void FixStructures()
@@ -68,19 +71,26 @@ public class ResourcefulHandsPatches
             
             Debug.Log("Scanning For Hand Cosmetics Scattered Across BepInEx Plugins...");
             
-            var methodInfo = AccessTools.Method(typeof(CL_CosmeticManager), "CreateHandCosmetics");
-            var actionDelegate = AccessTools.MethodDelegate<Action<string, List<string>>>(methodInfo);
-            
-
             foreach (var pluginFolder in pluginFolders)
             {
-                if (File.Exists(Path.Combine(pluginFolder, "cosmetic-handitem-settings.json")))
+                var jsonPath = Path.Combine(pluginFolder, "cosmetic-voice-settings.json");
+                if (File.Exists(jsonPath))
                 {
+                    string jsonContent = File.ReadAllText(jsonPath);
+                    var settings = JsonConvert.DeserializeObject<CosmeticHandPack>(jsonContent);
+
+                    if (settings == null)
+                        continue;
+
+                    settings.id = $"{settings.id}_hand";
+                    
+                    if (!PackManager.RegisterHandCosmetic(settings))
+                        continue;
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
 
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
-                        actionDelegate, 
+                        new Action<string, List<string>>(CL_CosmeticManager.CreateHandCosmetics), 
                         "cosmetic-handitem-settings.json"
                     );
                     ModLogger.Info($"Found pack at {pluginFolder}");
@@ -100,19 +110,28 @@ public class ResourcefulHandsPatches
             
             Debug.Log("Scanning For Voice Cosmetics Scattered Across BepInEx Plugins...");
             
-            var methodInfo = AccessTools.Method(typeof(CL_CosmeticManager), "CreateVoiceCosmetics");
-            var actionDelegate = AccessTools.MethodDelegate<Action<string, List<string>>>(methodInfo);
-            
 
             foreach (var pluginFolder in pluginFolders)
             {
-                if (File.Exists(Path.Combine(pluginFolder, "cosmetic-voice-settings.json")))
+                var jsonPath = Path.Combine(pluginFolder, "cosmetic-voice-settings.json");
+                if (File.Exists(jsonPath))
                 {
+                    string jsonContent = File.ReadAllText(jsonPath);
+                    var settings = JsonConvert.DeserializeObject<CosmeticHandPack>(jsonContent);
+
+                    if (settings == null)
+                        continue;
+                    
+                    settings.id = $"{settings.id}_voice";
+                    
+                    if (!PackManager.RegisterHandCosmetic(settings))
+                        continue;
+                    
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
                     
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
-                        actionDelegate, 
+                        new Action<string, List<string>>(CL_CosmeticManager.CreateVoiceCosmetics), 
                         "cosmetic-voice-settings.json"
                     );
                     
