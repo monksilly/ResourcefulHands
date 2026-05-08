@@ -1,85 +1,40 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace ResourcefulHands.Utility;
 
-public class CosmeticPack
+public interface ICosmeticPack
 {
-    #region Vanilla Settings
+    string id { get; set; }
+    string cosmeticName { get; set; }
+    string author { get; set; }
+    string description { get; set; }
+    Texture2D Icon { get; set; }
     
-    [JsonProperty("id")]
-    public string ID { get; set; } = null!;
+    bool IsActive { get; set; }
+}
 
-    [JsonProperty("cosmeticName")]
-    public string CosmeticName { get; set; } = null!;
-
-    [JsonProperty("description")]
-    public string Author { get; set; } = null!;
-    
-    [JsonProperty("credits")]
-    public string Credits { get; set; } = null!;
-    
-    // Can be null!
-    [JsonProperty("unlock", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Unlock { get; set; }
-
-    [JsonProperty("allowedSpecialtyPoses")]
-    public List<string> AllowedSpecialtyPoses { get; set; } = [];
-    
-    [JsonProperty("palettes", NullValueHandling = NullValueHandling.Ignore)]
-    public List<PaletteEntry>? Palettes { get; set; }
-    
-    public List<SwapSpriteEntry>? SwapSprites { get; set; }
+public class CosmeticHandPack : Cosmetic_HandItem.Cosmetic_HandItem_Data, ICosmeticPack
+{
+    public SwapSpriteEntry? SwapSprites { get; set; }
     public List<InteractSwapEntry>? InteractSwaps { get; set; }
     public List<SecondaryTextureEntry>? GlobalSecondary { get; set; }
-    #endregion
+    public string id { get; set; }
+    public string cosmeticName { get; set; }
+    public string author { get; set; }
+    public string description { get; set; }
+    public Texture2D Icon { get; set; } = new Texture2D(1, 1);
+    public bool IsActive { get; set; }
 }
 
-public class PaletteEntry
-{
-    [JsonProperty("id")]
-    public string Id { get; set; } = null!;
-    
-    [JsonProperty("title")]
-    public string Title { get; set; } = null!;
-}
+public class PaletteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.ColorPalette {}
 
-public class SwapSpriteEntry
-{
-    [JsonProperty("spriteName")]
-    public string SpriteName { get; set; } = null!;
-    
-    [JsonProperty("replacementSpriteNames")]
-    public List<string> ReplacementSpriteNames { get; set; } = null!;
-    
-    [JsonProperty("framerate")]
-    public float Framerate { get; set; }
-    
-    [JsonProperty("loopTimeOffset",  NullValueHandling = NullValueHandling.Ignore)]
-    public float? LoopTimeOffset { get; set; }
+public class SwapSpriteEntry : Cosmetic_HandItem.SwapSprite {}
 
-    [JsonProperty("materialBase")]
-    public string MaterialBase { get; set; } = "";
+public class InteractSwapEntry : Cosmetic_HandItem.InteractSwap {}
 
-    [JsonProperty("hand", NullValueHandling = NullValueHandling.Ignore)]
-    public int Hand { get; set; }
-    
-    [JsonProperty("requiredStateTags", NullValueHandling = NullValueHandling.Ignore)]
-    public List<string> RequiredStateTags { get; set; } = [];
-    
-    [JsonProperty("requiredItemNames",  NullValueHandling = NullValueHandling.Ignore)]
-    public List<string> RequiredItemNames { get; set; } = [];
-    
-    [JsonProperty("opacity",  NullValueHandling = NullValueHandling.Ignore)]
-    public float Opacity { get; set; } = 1f;
-}
-
-public class InteractSwapEntry
-{
-    public string ReplacementSpriteName { get; set; } = null!;
-}
-
-public class SecondaryTextureEntry
+public class SecondaryTextureEntry : Cosmetic_HandItem.SwapSprite.SecondaryTextures
 {
     public List<string> SecondaryTextureNames { get; set; } = null!;
 }
