@@ -28,6 +28,16 @@ public class CosmeticHandPack : Cosmetic_HandItem.Cosmetic_HandItem_Data, ICosme
     public bool IsActive { get; set; }
 }
 
+public class CosmeticVoicePack : Cosmetic_Voice.Cosmetic_Voice_Data, ICosmeticPack
+{
+    public string id { get; set; }
+    public string cosmeticName { get; set; }
+    public string author { get; set; }
+    public string description { get; set; }
+    public Texture2D Icon { get; set; }
+    public bool IsActive { get; set; }
+}
+
 public class PaletteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.ColorPalette {}
 
 public class SwapSpriteEntry : Cosmetic_HandItem.SwapSprite {}
