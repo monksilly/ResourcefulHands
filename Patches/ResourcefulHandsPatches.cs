@@ -20,7 +20,8 @@ public class ResourcefulHandsPatches
     public static class CL_CosmeticManager_Patches
     {
         // Prevent Processing the same folder more than once
-        private static readonly HashSet<string> ProcessedFolders = [];
+        private static readonly HashSet<string> ProcessedHandFolders = [];
+        private static readonly HashSet<string> ProcessedVoiceFolders = [];
         
         [HarmonyPrefix]
         [HarmonyPatch("ScanForCosmetics")]
@@ -82,17 +83,21 @@ public class ResourcefulHandsPatches
                     if (settings == null)
                         continue;
 
-                    settings.id = $"{settings.id}_hand";
+                    //settings.id = $"{settings.id}_hand";
                     
-                    if (!PackManager.RegisterHandCosmetic(settings))
+                    if (!PackManager.RegisterHandCosmetic(settings, Path.Combine(pluginFolder, "card-foreground.png")))
                         continue;
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
+                    
+                    if (ProcessedHandFolders.Contains(parentFolder))
+                        continue;
 
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
                         new Action<string, List<string>>(CL_CosmeticManager.CreateHandCosmetics), 
                         "cosmetic-handitem-settings.json"
                     );
+                    ProcessedHandFolders.Add(parentFolder);
                     ModLogger.Info($"Found pack at {pluginFolder}");
                 }
             }
@@ -117,24 +122,27 @@ public class ResourcefulHandsPatches
                 if (File.Exists(jsonPath))
                 {
                     string jsonContent = File.ReadAllText(jsonPath);
-                    var settings = JsonConvert.DeserializeObject<CosmeticHandPack>(jsonContent);
+                    var settings = JsonConvert.DeserializeObject<CosmeticVoicePack>(jsonContent);
 
                     if (settings == null)
                         continue;
                     
-                    settings.id = $"{settings.id}_voice";
+                    //settings.id = $"{settings.id}_voice";
                     
-                    if (!PackManager.RegisterHandCosmetic(settings))
+                    if (!PackManager.RegisterVoiceCosmetics(settings, Path.Combine(pluginFolder, "card-foreground.png")))
                         continue;
                     
                     string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
+                    
+                    if (ProcessedVoiceFolders.Contains(parentFolder))
+                        continue;
                     
                     var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
                         parentFolder, 
                         new Action<string, List<string>>(CL_CosmeticManager.CreateVoiceCosmetics), 
                         "cosmetic-voice-settings.json"
                     );
-                    
+                    ProcessedVoiceFolders.Add(parentFolder);
                     ModLogger.Info("Found Voice Pack at: " + pluginFolder);
                 }
             }
