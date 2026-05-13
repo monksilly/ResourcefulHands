@@ -365,7 +365,7 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(iconRect, new Color32(255, 255, 0, 255), 2f, 0f);
-        gui.Image(loadedPack.Icon, iconRect);
+        gui.Image(loadedPack.Icon, iconRect, true);
         return iconRect;
     }
 
