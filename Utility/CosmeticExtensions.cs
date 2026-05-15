@@ -6,35 +6,32 @@ namespace ResourcefulHands.Utility;
 
 public interface ICosmeticPack
 {
-    string id { get; set; }
-    string cosmeticName { get; set; }
-    string author { get; set; }
-    string description { get; set; }
-    Texture2D Icon { get; set; }
-    
-    bool IsActive { get; set; }
-}
+    public Cosmetic_Info CosmeticInfo { get; set; }
 
-public class CosmeticHandPack : Cosmetic_HandItem.Cosmetic_HandItem_Data, ICosmeticPack
-{
-    public SwapSpriteEntry? SwapSprites { get; set; }
-    public List<InteractSwapEntry>? InteractSwaps { get; set; }
-    public List<SecondaryTextureEntry>? GlobalSecondary { get; set; }
-    public string id { get; set; }
-    public string cosmeticName { get; set; }
-    public string author { get; set; }
-    public string description { get; set; }
-    public Texture2D Icon { get; set; } = new Texture2D(1, 1);
+    public Texture2D Icon { get; set; }
+    
     public bool IsActive { get; set; }
 }
 
-public class CosmeticVoicePack : Cosmetic_Voice.Cosmetic_Voice_Data, ICosmeticPack
+public class CosmeticHandPack : ICosmeticPack
 {
-    public string id { get; set; }
-    public string cosmeticName { get; set; }
-    public string author { get; set; }
-    public string description { get; set; }
+    public Cosmetic_HandItem.Cosmetic_HandItem_Data CosmeticData { get; set; }
+    
+    public Cosmetic_Info CosmeticInfo { get; set; }
+    
     public Texture2D Icon { get; set; }
+    
+    public bool IsActive { get; set; }
+}
+
+public class CosmeticVoicePack : ICosmeticPack
+{
+    public Cosmetic_Voice.Cosmetic_Voice_Data CosmeticData { get; set; }
+
+    public Cosmetic_Info CosmeticInfo { get; set; }
+    
+    public Texture2D Icon { get; set; }
+    
     public bool IsActive { get; set; }
 }
 
