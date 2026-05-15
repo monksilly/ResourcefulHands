@@ -194,6 +194,10 @@ public static class PackManager
     
     public static void GatherCosmetics()
     {
+        CosmeticPacks.Clear(); 
+        _handCosmetics.Clear(); 
+        _voiceCosmetics.Clear();
+        
         foreach (Cosmetic_HandItem cosmeticHand in CL_CosmeticManager.cosmeticHands)
         {
             var vanillaData = cosmeticHand.cosmeticData;
