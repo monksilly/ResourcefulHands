@@ -111,9 +111,9 @@ public class PacksMenu : WKLibWindow
 
             if (isSearching)
             {
-                if (!loadedPack.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.author.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
+                if (!loadedPack.CosmeticInfo.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.author.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
                     continue;
             }
 
@@ -286,9 +286,9 @@ public class PacksMenu : WKLibWindow
 
             if (isSearching)
             {
-                if (!loadedPack.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.author.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
+                if (!loadedPack.CosmeticInfo.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.author.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
                     continue;   
             }
             
@@ -389,7 +389,7 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(titleRect, new Color32(0, 125, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.cosmeticName, titleRect);
+        gui.Text(loadedPack.CosmeticInfo.cosmeticName, titleRect);
 
         return titleRect;
     }
@@ -415,7 +415,7 @@ public class PacksMenu : WKLibWindow
                 
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(authorRect, new Color32(0, 255, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.author, authorRect);
+        gui.Text(loadedPack.CosmeticInfo.author, authorRect);
         return authorRect;
     }
 
@@ -439,7 +439,7 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(descriptionRect, new Color32(125, 0, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.description, descriptionRect, wrap: true, overflow: ImTextOverflow.Ellipsis);
+        gui.Text(loadedPack.CosmeticInfo.description, descriptionRect, wrap: true, overflow: ImTextOverflow.Ellipsis);
         return descriptionRect;
     }
     

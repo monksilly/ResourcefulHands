@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json;
 using ResourcefulHands.Core;
 using ResourcefulHands.Utility;
 using UnityEngine;
@@ -17,105 +20,220 @@ public static class PackManager
         get => _handCosmetics; 
     }
 
-    public static List<ICosmeticPack> ActiveCosmeticPacks { get; private set; } = [];
+    public static List<ICosmeticPack> ActiveCosmeticPacks => CosmeticPacks.Where(pack => pack.IsActive).ToList();
     public static List<ICosmeticPack> CosmeticPacks { get; private set; } = [];
     
     private static List<CosmeticHandPack> _handCosmetics = [];
     private static List<CosmeticVoicePack> _voiceCosmetics = [];
     
-    public static bool RegisterHandCosmetic(CosmeticHandPack handPack, string fgCardPath = "")
+    private const string HandJsonFileName = "cosmetic-handitem-settings.json";
+    private const string VoiceJsonFileName = "cosmetic-voice-settings.json";
+    
+    private const string CardBackgroundFileName = "card-background.png";
+    private const string CardForegroundFileName = "card-foreground.png";
+    
+    public static void ScanCosmeticsAtPluginsFolder()
     {
-        if (_handCosmetics.Contains(handPack)) return false;
+        string pluginsPath = BepInEx.Paths.PluginPath;
+        if (!Directory.Exists(pluginsPath))
+            return;
 
-        handPack.cosmeticName = $"{handPack.cosmeticName} (HAND)";
-        
-        if (!string.IsNullOrEmpty(fgCardPath))
+        string[] jsonFiles = Directory.GetFiles(pluginsPath, "*.json", SearchOption.AllDirectories);
+
+        Debug.Log("Scanning For Cosmetics Scattered Across BepInEx Plugins...");
+
+        foreach (var jsonFilePath in jsonFiles)
         {
-            var icon = LoadTextureFromFile(fgCardPath);
-            if (icon != null)
-                handPack.Icon = icon;
+            var jsonFileName = Path.GetFileName(jsonFilePath);
+            var pluginFolder = Path.GetDirectoryName(jsonFilePath);
+            string jsonContent = File.ReadAllText(jsonFilePath);
+            
+            switch (jsonFileName)
+            {
+                case HandJsonFileName:
+                    // Read the file
+                    var cosmeticHandData =
+                        JsonConvert.DeserializeObject<Cosmetic_HandItem.Cosmetic_HandItem_Data>(jsonContent);
+
+                    // Detect if duplicate exists
+                    if (CL_CosmeticManager.cosmeticHandDict.ContainsKey(cosmeticHandData.id))
+                    {
+                        ModLogger.Warning($"Cosmetic hand id: {cosmeticHandData.id}, already exists");
+                        continue;
+                    }
+                    
+                    // If not, register on the official cosmetic system
+                    CL_CosmeticManager.CreateHandCosmetics(pluginFolder, new List<string>(){ jsonFilePath });
+                    
+                    ModLogger.Info("Registered hand pack at: " + pluginFolder);
+                    break;
+                case VoiceJsonFileName:
+                    // Read the file
+                    var cosmeticVoiceData =
+                        JsonConvert.DeserializeObject<Cosmetic_Voice.Cosmetic_Voice_Data>(jsonContent);
+
+                    // Detect if duplicate exists
+                    if (CL_CosmeticManager.cosmeticVoiceDict.ContainsKey(cosmeticVoiceData.id))
+                    {
+                        ModLogger.Warning($"Cosmetic voice id: {cosmeticVoiceData.id}, already exists");
+                        continue;
+                    }
+                    
+                    // If not, register on the official cosmetic system
+                    CL_CosmeticManager.CreateVoiceCosmetics(pluginFolder, new List<string>(){ jsonFilePath });
+                    
+                    ModLogger.Info("Registered voice pack at: " + pluginFolder);
+                    break;
+                default:
+                    break;
+            }
         }
-        
-        ModLogger.Info($"Pack {handPack.id} has been registered");
-        _handCosmetics.Add(handPack);
-        CosmeticPacks.Add(handPack);
-        return true;
     }
 
-    public static bool RegisterVoiceCosmetics(CosmeticVoicePack voicePack, string fgCardPath = "")
+    #region Pack Creation
+    public static bool CreateHandPack(Cosmetic_HandItem.Cosmetic_HandItem_Data cosmeticHandData, string folderDirectory, out CosmeticHandPack cosmeticHandPack)
     {
-        if (_voiceCosmetics.Contains(voicePack)) return false;
+        cosmeticHandPack = null;
+        if (cosmeticHandData == null)
+            return false;
 
-        voicePack.cosmeticName = $"{voicePack.cosmeticName} (VOICE)";
-        
-        if (!string.IsNullOrEmpty(fgCardPath))
+        cosmeticHandPack = new ();
+        cosmeticHandPack.CosmeticInfo = new Cosmetic_Info
         {
-            var icon = LoadTextureFromFile(fgCardPath);
-            if (icon != null)
-                voicePack.Icon = icon;
-        }
-        
-        ModLogger.Info($"Pack {voicePack.id} has been registered");
-        _voiceCosmetics.Add(voicePack);
-        CosmeticPacks.Add(voicePack);
-        return true;
-    }
-
-    private static CosmeticHandPack CopyVanillaData(Cosmetic_HandItem.Cosmetic_HandItem_Data vanillaData)
-    {
-        return new CosmeticHandPack()
-        {
-            id = vanillaData.id,
-            author = vanillaData.author,
-            description = vanillaData.description,
-            cosmeticName = vanillaData.cosmeticName,
-            unlock = vanillaData.unlock,
-            emotes = vanillaData.emotes,
-            palettes = vanillaData.palettes,
-            allowedSpecialtyPoses = vanillaData.allowedSpecialtyPoses,
-            useGlobalSecondary = vanillaData.useGlobalSecondary,
-            globalSecondary = vanillaData.globalSecondary,
-            globalMaterialSwap = vanillaData.globalMaterialSwap,
-            globalMaterialBase = vanillaData.globalMaterialBase,
-            forceGlobalMaterialOntoHands = vanillaData.forceGlobalMaterialOntoHands,
-            useCustomStaminaColor = vanillaData.useCustomStaminaColor,
-            customStaminaColor = vanillaData.customStaminaColor,
-            useCustomStaminaIconColor = vanillaData.useCustomStaminaIconColor,
-            customStaminaIconColor = vanillaData.customStaminaIconColor,
-            useCustomStaminaOutlineColor = vanillaData.useCustomStaminaOutlineColor,
-            customStaminaOutlineColor = vanillaData.customStaminaOutlineColor,
-            outlineMaskColor = vanillaData.outlineMaskColor,
-            swapSprites = vanillaData.swapSprites,
-            interactSwaps = vanillaData.interactSwaps,
-        
-            // Custom Interface settings
-            IsActive = false
+            id = cosmeticHandData.id,
+            cosmeticName = cosmeticHandData.cosmeticName,
+            tag = "hand",
+            author = cosmeticHandData.author,
+            description = cosmeticHandData.description,
+            unlock = cosmeticHandData.unlock
         };
+        cosmeticHandPack.CosmeticData = cosmeticHandData;
+        cosmeticHandPack.IsActive = true;
+        
+        var icon = LoadTextureFromFile(Path.Combine(folderDirectory, CardForegroundFileName));
+        if (icon != null)
+            cosmeticHandPack.Icon = icon;
+        
+        CosmeticPacks.Add(cosmeticHandPack);
+        _handCosmetics.Add(cosmeticHandPack);
+        return true;
     }
     
-    public static void GatherGameHandCosmetics()
+    public static bool CreateVoicePack(Cosmetic_Voice.Cosmetic_Voice_Data cosmeticVoiceData, string folderDirectory, out CosmeticVoicePack cosmeticVoicePack)
     {
-        foreach (Cosmetic_HandItem cosmeticHandPack in CL_CosmeticManager.cosmeticHands)
+        cosmeticVoicePack = null;
+        if (cosmeticVoiceData == null)
+            return false;
+
+        cosmeticVoicePack = new ();
+        cosmeticVoicePack.CosmeticInfo = new Cosmetic_Info
         {
-            var vanillaData = cosmeticHandPack.cosmeticData;
+            id = cosmeticVoiceData.id,
+            cosmeticName = cosmeticVoiceData.cosmeticName,
+            tag = "voice",
+            author = cosmeticVoiceData.author,
+            description = cosmeticVoiceData.description,
+            unlock = cosmeticVoiceData.unlock
+        };
+        cosmeticVoicePack.CosmeticData = cosmeticVoiceData;
+        cosmeticVoicePack.IsActive = true;
+        
+        var icon = LoadTextureFromFile(Path.Combine(folderDirectory, CardForegroundFileName));
+        if (icon != null)
+            cosmeticVoicePack.Icon = icon; 
+        
+        CosmeticPacks.Add(cosmeticVoicePack);
+        _voiceCosmetics.Add(cosmeticVoicePack);
+        return true;
+    }
+    #endregion
+
+    #region Base Game Cosmetic Registering
+    public static bool RegisterExistingHandCosmetic(Cosmetic_HandItem cosmeticHand, out CosmeticHandPack cosmeticHandPack)
+    {
+        cosmeticHandPack = null;
+        if (cosmeticHand == null  || cosmeticHand.cosmeticData == null)
+            return false;
+
+        cosmeticHandPack = new ();
+        cosmeticHandPack.CosmeticInfo = cosmeticHand.cosmeticInfo;
+        cosmeticHandPack.CosmeticData = cosmeticHand.cosmeticData;
+        cosmeticHandPack.IsActive = true;
+        
+        if (cosmeticHandPack.CosmeticInfo.cardForeground != null)
+        {
+            cosmeticHandPack.Icon = cosmeticHand.cosmeticInfo.cardForeground.texture;
+        }
+        
+        CosmeticPacks.Add(cosmeticHandPack);
+        _handCosmetics.Add(cosmeticHandPack);
+        return true;
+    }
+    
+    public static bool RegisterExistingVoiceCosmetic(Cosmetic_Voice cosmeticVoice, out CosmeticVoicePack cosmeticVoicePack)
+    {
+        cosmeticVoicePack = null;
+        if (cosmeticVoice == null || cosmeticVoice.cosmeticData == null)
+            return false;
+
+       cosmeticVoicePack = new ();
+       cosmeticVoicePack.CosmeticInfo = cosmeticVoice.cosmeticInfo;
+       cosmeticVoicePack.CosmeticData = cosmeticVoice.cosmeticData;
+       cosmeticVoicePack.IsActive = true;
+        
+        if (cosmeticVoicePack.CosmeticInfo.cardForeground != null)
+        {
+            cosmeticVoicePack.Icon = cosmeticVoice.cosmeticInfo.cardForeground.texture;
+        }
+        
+        CosmeticPacks.Add(cosmeticVoicePack);
+        _voiceCosmetics.Add(cosmeticVoicePack);
+        return true;
+    }
+    #endregion
+    
+    public static void GatherCosmetics()
+    {
+        foreach (Cosmetic_HandItem cosmeticHand in CL_CosmeticManager.cosmeticHands)
+        {
+            var vanillaData = cosmeticHand.cosmeticData;
             if (vanillaData == null)
             {
-                ModLogger.Warning("Unable to gather Vanilla Hand cosmetic...");
+                ModLogger.Warning("Unable to gather hand cosmetic...");
                 continue;
             }
             
-            ModLogger.Debug($"Going to get data from: {vanillaData.cosmeticName}");
-            
-            CosmeticHandPack mappedPack = CopyVanillaData(vanillaData);
-            
-            if (cosmeticHandPack.cosmeticInfo.cardForeground != null)
+            ModLogger.Debug($"Getting data from: {vanillaData.cosmeticName}");
+
+            if (RegisterExistingHandCosmetic(cosmeticHand, out var mappedPack))
             {
-                mappedPack.Icon = cosmeticHandPack.cosmeticInfo.cardForeground.texture;
+                ModLogger.Info($"Gathered hand cosmetic with ID: {mappedPack.CosmeticData.id}");
+            }
+            else
+            {
+                ModLogger.Info($"Failed to register cosmetic, ID: {cosmeticHand.cosmeticInfo.id}");
+            }
+        }
+        
+        foreach (Cosmetic_Voice cosmeticVoice in CL_CosmeticManager.cosmeticVoices)
+        {
+            var vanillaData = cosmeticVoice.cosmeticData;
+            if (vanillaData == null)
+            {
+                ModLogger.Warning("Unable to gather voice cosmetic...");
+                continue;
             }
             
-            ModLogger.Info($"Gathered Vanilla Hand cosmetic with ID: {mappedPack.id}");
-            
-            RegisterHandCosmetic(mappedPack);
+            ModLogger.Debug($"Getting data from: {vanillaData.cosmeticName}");
+
+            if (RegisterExistingVoiceCosmetic(cosmeticVoice, out var mappedPack))
+            {
+                ModLogger.Info($"Gathered voice cosmetic with ID: {mappedPack.CosmeticData.id}");
+            }
+            else
+            {
+                ModLogger.Info($"Failed to register voice cosmetic, ID: {cosmeticVoice.cosmeticInfo.id}");
+            }
         }
     }
     

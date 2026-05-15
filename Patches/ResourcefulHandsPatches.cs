@@ -19,10 +19,6 @@ public class ResourcefulHandsPatches
     [HarmonyPatch(typeof(CL_CosmeticManager))]
     public static class CL_CosmeticManager_Patches
     {
-        // Prevent Processing the same folder more than once
-        private static readonly HashSet<string> ProcessedHandFolders = [];
-        private static readonly HashSet<string> ProcessedVoiceFolders = [];
-        
         [HarmonyPrefix]
         [HarmonyPatch("ScanForCosmetics")]
         public static bool ScanForCosmeticsPrefix()
@@ -36,10 +32,8 @@ public class ResourcefulHandsPatches
         [HarmonyPatch("ScanForCosmetics")]
         public static void ScanForCosmeticsPostfix()
         {
-            ScanHandCosmetics();
-            ScanVoiceCosmetics();
-            // TODO: Fix this so it works.
-            PackManager.GatherGameHandCosmetics();
+            PackManager.ScanCosmeticsAtPluginsFolder(); // First we add the cosmetics to the base game
+            PackManager.GatherCosmetics(); // Then we register all the cosmetics
         }
 
         private static void FixStructures()
@@ -61,95 +55,6 @@ public class ResourcefulHandsPatches
                 }
             }
         }
-        
-        private static void ScanHandCosmetics()
-        {
-            string pluginsPath = BepInEx.Paths.PluginPath;
-            
-            if (!Directory.Exists(pluginsPath)) return;
-            
-            string[] pluginFolders =  Directory.GetDirectories(pluginsPath, "*", SearchOption.AllDirectories);
-            
-            Debug.Log("Scanning For Hand Cosmetics Scattered Across BepInEx Plugins...");
-            
-            foreach (var pluginFolder in pluginFolders)
-            {
-                var jsonPath = Path.Combine(pluginFolder, "cosmetic-voice-settings.json");
-                if (File.Exists(jsonPath))
-                {
-                    string jsonContent = File.ReadAllText(jsonPath);
-                    var settings = JsonConvert.DeserializeObject<CosmeticHandPack>(jsonContent);
-
-                    if (settings == null)
-                        continue;
-
-                    //settings.id = $"{settings.id}_hand";
-                    
-                    if (!PackManager.RegisterHandCosmetic(settings, Path.Combine(pluginFolder, "card-foreground.png")))
-                        continue;
-                    string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
-                    
-                    if (ProcessedHandFolders.Contains(parentFolder))
-                        continue;
-
-                    var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
-                        parentFolder, 
-                        new Action<string, List<string>>(CL_CosmeticManager.CreateHandCosmetics), 
-                        "cosmetic-handitem-settings.json"
-                    );
-                    ProcessedHandFolders.Add(parentFolder);
-                    ModLogger.Info($"Found pack at {pluginFolder}");
-                }
-            }
-            
-            Debug.Log("Finished Scanning For Hand Cosmetics From BepInEx Plugins.");
-        }
-
-        private static void ScanVoiceCosmetics()
-        {
-            string pluginsPath = BepInEx.Paths.PluginPath;
-            
-            if (!Directory.Exists(pluginsPath)) return;
-            
-            string[] pluginFolders =  Directory.GetDirectories(pluginsPath, "*", SearchOption.AllDirectories);
-            
-            Debug.Log("Scanning For Voice Cosmetics Scattered Across BepInEx Plugins...");
-            
-
-            foreach (var pluginFolder in pluginFolders)
-            {
-                var jsonPath = Path.Combine(pluginFolder, "cosmetic-voice-settings.json");
-                if (File.Exists(jsonPath))
-                {
-                    string jsonContent = File.ReadAllText(jsonPath);
-                    var settings = JsonConvert.DeserializeObject<CosmeticVoicePack>(jsonContent);
-
-                    if (settings == null)
-                        continue;
-                    
-                    //settings.id = $"{settings.id}_voice";
-                    
-                    if (!PackManager.RegisterVoiceCosmetics(settings, Path.Combine(pluginFolder, "card-foreground.png")))
-                        continue;
-                    
-                    string parentFolder = Directory.GetParent(pluginFolder)!.FullName;
-                    
-                    if (ProcessedVoiceFolders.Contains(parentFolder))
-                        continue;
-                    
-                    var scanResult = CL_CosmeticManager.ScanSubfoldersForJson(
-                        parentFolder, 
-                        new Action<string, List<string>>(CL_CosmeticManager.CreateVoiceCosmetics), 
-                        "cosmetic-voice-settings.json"
-                    );
-                    ProcessedVoiceFolders.Add(parentFolder);
-                    ModLogger.Info("Found Voice Pack at: " + pluginFolder);
-                }
-            }
-            
-            Debug.Log("Finished Scanning For Voice Cosmetics From BepInEx Plugins.");
-        }
-        
     }
 }
 

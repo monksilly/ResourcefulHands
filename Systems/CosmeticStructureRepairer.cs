@@ -57,7 +57,7 @@ public static class CosmeticStructureRepairer
 
             // Parse JSON
             string jsonContent = File.ReadAllText(jsonPath);
-            var settings = JsonConvert.DeserializeObject<CosmeticHandPack>(jsonContent);
+            var settings = JsonConvert.DeserializeObject<Cosmetic_HandItem.Cosmetic_HandItem_Data>(jsonContent);
             if (settings == null)
             {
                 ModLogger.Error($"[Fixer] Failed to deserialize JSON at {jsonPath}");
@@ -90,10 +90,10 @@ public static class CosmeticStructureRepairer
             //}
 
             HashSet<string> secondaryFiles = [];
-            if (settings.GlobalSecondary != null)
+            if (settings.globalSecondary != null)
             {
-                foreach (var entry in settings.GlobalSecondary)
-                foreach (var name in entry.SecondaryTextureNames)
+                foreach (var entry in settings.globalSecondary)
+                foreach (var name in entry.secondaryTextureNames)
                     secondaryFiles.Add(name.ToLower());
             }
 
