@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Linq;
 using UnityEngine;
 
 namespace ResourcefulHands.Utility;
@@ -16,6 +16,8 @@ public interface ICosmeticPack
 public class CosmeticHandPack : ICosmeticPack
 {
     public Cosmetic_HandItem.Cosmetic_HandItem_Data CosmeticData { get; set; }
+    
+    public ExtendedHandItemData ExtendedCosmeticData { get; set; }
     
     public Cosmetic_Info CosmeticInfo { get; set; }
     
@@ -35,6 +37,17 @@ public class CosmeticVoicePack : ICosmeticPack
     public bool IsActive { get; set; }
 }
 
+public class ExtendedHandItemData : Cosmetic_HandItem.Cosmetic_HandItem_Data
+{
+    public new List<EmoteEntry>? emotes { get; set; } = null!;
+}
+
+public class EmoteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.HandEmote
+{
+    public string Sound { get; set; } = null!;
+    public AudioClip SoundClip { get; set; } = null!;
+}
+
 public class PaletteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.ColorPalette {}
 
 public class SwapSpriteEntry : Cosmetic_HandItem.SwapSprite {}
@@ -45,3 +58,5 @@ public class SecondaryTextureEntry : Cosmetic_HandItem.SwapSprite.SecondaryTextu
 {
     public List<string> SecondaryTextureNames { get; set; } = null!;
 }
+
+

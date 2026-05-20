@@ -1,4 +1,10 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using ResourcefulHands.Core;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace ResourcefulHands.Utility;
 
@@ -20,5 +26,24 @@ public static class AudioUtils
         clip.SetData(samples, 0);
 
         return clip;
+    }
+    
+    public static IEnumerator LoadAudioClipFromFile(string path, Action<AudioClip> callback)
+    {
+        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip("file://" + path, AudioType.WAV))
+        {
+            yield return uwr.SendWebRequest();
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                ModLogger.Debug(uwr.error);
+                yield break;
+            }
+
+            AudioClip clip = DownloadHandlerAudioClip.GetContent(uwr);
+            clip.name = Path.GetFileNameWithoutExtension(path);
+            ModLogger.Debug($"Loaded Clip: {clip.name}");
+
+            callback?.Invoke(clip);
+        }
     }
 }

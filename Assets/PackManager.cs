@@ -26,8 +26,13 @@ public static class PackManager
     private static List<CosmeticHandPack> _handCosmetics = [];
     private static List<CosmeticVoicePack> _voiceCosmetics = [];
     
+    public static Dictionary<string,CosmeticHandPack> HandCosmeticPacksDict { get; private set; } = [];
+    public static Dictionary<string,CosmeticVoicePack> VoiceCosmeticPacksDict { get; private set; } = [];
+    
     private const string HandJsonFileName = "cosmetic-handitem-settings.json";
     private const string VoiceJsonFileName = "cosmetic-voice-settings.json";
+
+    public static Dictionary<string, ExtendedHandItemData> HandCosmeticExtendedData { get; private set; } = new();
     
     private const string CardBackgroundFileName = "card-background.png";
     private const string CardForegroundFileName = "card-foreground.png";
@@ -53,7 +58,7 @@ public static class PackManager
                 case HandJsonFileName:
                     // Read the file
                     var cosmeticHandData =
-                        JsonConvert.DeserializeObject<Cosmetic_HandItem.Cosmetic_HandItem_Data>(jsonContent);
+                        JsonConvert.DeserializeObject<ExtendedHandItemData>(jsonContent);
 
                     // Detect if duplicate exists
                     if (CL_CosmeticManager.cosmeticHandDict.ContainsKey(cosmeticHandData.id))
@@ -107,7 +112,10 @@ public static class PackManager
             description = cosmeticHandData.description,
             unlock = cosmeticHandData.unlock
         };
+        
         cosmeticHandPack.CosmeticData = cosmeticHandData;
+        HandCosmeticExtendedData.TryGetValue(cosmeticHandData.id, out var extendedData);
+        cosmeticHandPack.ExtendedCosmeticData = extendedData;
         cosmeticHandPack.IsActive = true;
         
         var icon = LoadTextureFromFile(Path.Combine(folderDirectory, CardForegroundFileName));
@@ -116,6 +124,7 @@ public static class PackManager
         
         CosmeticPacks.Add(cosmeticHandPack);
         _handCosmetics.Add(cosmeticHandPack);
+        HandCosmeticPacksDict.TryAdd(cosmeticHandPack.CosmeticInfo.id, cosmeticHandPack);
         return true;
     }
     
@@ -144,6 +153,7 @@ public static class PackManager
         
         CosmeticPacks.Add(cosmeticVoicePack);
         _voiceCosmetics.Add(cosmeticVoicePack);
+        VoiceCosmeticPacksDict.TryAdd(cosmeticVoicePack.CosmeticInfo.id, cosmeticVoicePack);
         return true;
     }
     #endregion
@@ -158,6 +168,8 @@ public static class PackManager
         cosmeticHandPack = new ();
         cosmeticHandPack.CosmeticInfo = cosmeticHand.cosmeticInfo;
         cosmeticHandPack.CosmeticData = cosmeticHand.cosmeticData;
+        HandCosmeticExtendedData.TryGetValue(cosmeticHand.cosmeticData.id, out var extendedData);
+        cosmeticHandPack.ExtendedCosmeticData = extendedData;
         cosmeticHandPack.IsActive = true;
         
         if (cosmeticHandPack.CosmeticInfo.cardForeground != null)
@@ -167,6 +179,7 @@ public static class PackManager
         
         CosmeticPacks.Add(cosmeticHandPack);
         _handCosmetics.Add(cosmeticHandPack);
+        HandCosmeticPacksDict.TryAdd(cosmeticHandPack.CosmeticInfo.id, cosmeticHandPack);
         return true;
     }
     
@@ -188,6 +201,7 @@ public static class PackManager
         
         CosmeticPacks.Add(cosmeticVoicePack);
         _voiceCosmetics.Add(cosmeticVoicePack);
+        VoiceCosmeticPacksDict.TryAdd(cosmeticVoicePack.CosmeticInfo.id, cosmeticVoicePack);
         return true;
     }
     #endregion
@@ -197,6 +211,8 @@ public static class PackManager
         CosmeticPacks.Clear(); 
         _handCosmetics.Clear(); 
         _voiceCosmetics.Clear();
+        HandCosmeticPacksDict.Clear();
+        VoiceCosmeticPacksDict.Clear();
         
         foreach (Cosmetic_HandItem cosmeticHand in CL_CosmeticManager.cosmeticHands)
         {
