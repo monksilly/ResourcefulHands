@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
@@ -29,6 +30,14 @@ public static class RHConfig
     // Always debug mode
     private static ConfigEntry<bool>? alwaysDebug = null;
     public static bool AlwaysDebug => alwaysDebug?.Value ?? false;
+    
+    public const int MaxEmotes = 10;
+    
+    private static readonly List<ConfigEntry<KeyCode>> emoteKeysLeft = new();
+    public static List<ConfigEntry<KeyCode>> EmoteKeysLeft => emoteKeysLeft;
+
+    private static readonly List<ConfigEntry<KeyCode>> emoteKeysRight = new();
+    public static List<ConfigEntry<KeyCode>> EmoteKeysRight => emoteKeysRight;
 
     
     // Config folder stuff
@@ -172,5 +181,13 @@ public static class RHConfig
             $"When enabled pack debug mode is always enabled unless toggled via the command ({RHCommands.ToggleDebug})."
         );
         ModLogger.Debug("Bound alwaysDebug");
+        
+        for (int i = 0; i < MaxEmotes; i++)
+        {
+            EmoteKeysLeft.Add(Plugin.Instance.Config.Bind("Emotes", "Emote Key Left " + i, KeyCode.None));
+            ModLogger.Debug("Bound Emote Key Left" + i);
+            EmoteKeysRight.Add(Plugin.Instance.Config.Bind("Emotes", "Emote Key Right " + i, KeyCode.None));
+            ModLogger.Debug("Bound Emote Key Right" + i);
+        }
     }
 }

@@ -57,7 +57,7 @@ public static class CosmeticStructureRepairer
 
             // Parse JSON
             string jsonContent = File.ReadAllText(jsonPath);
-            var settings = JsonConvert.DeserializeObject<CosmeticSettings>(jsonContent);
+            var settings = JsonConvert.DeserializeObject<Cosmetic_HandItem.Cosmetic_HandItem_Data>(jsonContent);
             if (settings == null)
             {
                 ModLogger.Error($"[Fixer] Failed to deserialize JSON at {jsonPath}");
@@ -75,25 +75,25 @@ public static class CosmeticStructureRepairer
 
             // Categorize filenames from JSON
             HashSet<string> handSpriteFiles = [];
-            if (settings.SwapSprites != null)
-            {
-                foreach (var entry in settings.SwapSprites)
-                foreach (var name in entry.ReplacementSpriteNames)
-                    handSpriteFiles.Add(name.ToLower());
-            }
+            //if (settings.SwapSprites != null)
+            //{
+            //    foreach (var entry in settings.SwapSprites)
+            //    foreach (var name in entry.ReplacementSpriteNames)
+            //        handSpriteFiles.Add(name.ToLower());
+            //}
 
             HashSet<string> interactFiles = [];
-            if (settings.InteractSwaps != null)
-            {
-                foreach (var entry in settings.InteractSwaps)
-                    interactFiles.Add(entry.ReplacementSpriteName.ToLower());
-            }
+            //if (settings.InteractSwaps != null)
+            //{
+            //    foreach (var entry in settings.InteractSwaps)
+            //        interactFiles.Add(entry.ReplacementSpriteName.ToLower());
+            //}
 
             HashSet<string> secondaryFiles = [];
-            if (settings.GlobalSecondary != null)
+            if (settings.globalSecondary != null)
             {
-                foreach (var entry in settings.GlobalSecondary)
-                foreach (var name in entry.SecondaryTextureNames)
+                foreach (var entry in settings.globalSecondary)
+                foreach (var name in entry.secondaryTextureNames)
                     secondaryFiles.Add(name.ToLower());
             }
 

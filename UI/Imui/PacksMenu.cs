@@ -8,6 +8,7 @@ using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
 using WKLib.API.UI;
 using ResourcefulHands.UI.Imui.Utility;
+using ResourcefulHands.Utility;
 using UnityEngine;
 using static ResourcefulHands.UI.Imui.WindowsDeclarations;
 
@@ -100,17 +101,19 @@ public class PacksMenu : WKLibWindow
         bool movePackDown = false;
         int movedPackIndex = -1;
         
-        for (int i = 0; i < ResourcePacksManager.ActivePacks.Length; i++)
-        {   
-            ref var loadedPack = ref ResourcePacksManager.ActivePacks[i];
+        // TODO: Merge both Hand and Voice Packs to one List.
+        for (int i = 0; i < PackManager.ActiveCosmeticPacks.Count; i++)
+        {
+            var cosmeticHandPack = PackManager.ActiveCosmeticPacks[i];
+            ref var loadedPack = ref cosmeticHandPack;
             if (loadedPack == null)
                 continue;
 
             if (isSearching)
             {
-                if (!loadedPack.name.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.author.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.desc.ToLower().Contains(searchBuffer.Trim().ToLower()))
+                if (!loadedPack.CosmeticInfo.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.author.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
                     continue;
             }
 
@@ -142,7 +145,7 @@ public class PacksMenu : WKLibWindow
             if (!isGridHovered)
                 continue;
 
-            bool isOnlyElement = ResourcePacksManager.ActivePacks.Length == 1;
+            bool isOnlyElement = PackManager.ActiveCosmeticPacks.Count == 1;
             var makeInactiveRect = DrawMakeInactive(gui, ref loadedPack, gridRect, titleRect, isOnlyElement, cellHeight, cellWidth);
             
             cellWidth -= (makeInactiveRect.W + spacing);
@@ -273,9 +276,9 @@ public class PacksMenu : WKLibWindow
 
         int makeActivePackIndex = -1;
         
-        for (int i = 0; i < ResourcePacksManager.LoadedPacks.Count; i++)
+        for (int i = 0; i < PackManager.CosmeticPacks.Count; i++)
         {   
-            var loadedPack = ResourcePacksManager.LoadedPacks[i];
+            var loadedPack = PackManager.CosmeticPacks[i];
             if (loadedPack == null)
                 continue;
 
@@ -284,9 +287,9 @@ public class PacksMenu : WKLibWindow
 
             if (isSearching)
             {
-                if (!loadedPack.name.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.author.ToLower().Contains(searchBuffer.Trim().ToLower())
-                    && !loadedPack.desc.ToLower().Contains(searchBuffer.Trim().ToLower()))
+                if (!loadedPack.CosmeticInfo.cosmeticName.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.author.ToLower().Contains(searchBuffer.Trim().ToLower())
+                    && !loadedPack.CosmeticInfo.description.ToLower().Contains(searchBuffer.Trim().ToLower()))
                     continue;   
             }
             
@@ -349,7 +352,7 @@ public class PacksMenu : WKLibWindow
     }
 
     #region Pack Selection UI Elements
-    private ImRect DrawIcon(ImGui gui, ResourcePack loadedPack, ImRect gridRect, float cellHeight, float cellWidth)
+    private ImRect DrawIcon(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
     
@@ -364,11 +367,11 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(iconRect, new Color32(255, 255, 0, 255), 2f, 0f);
-        gui.Image(loadedPack.Icon, iconRect);
+        gui.Image(loadedPack.Icon, iconRect, true);
         return iconRect;
     }
 
-    private ImRect DrawTitle(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private ImRect DrawTitle(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
 
@@ -388,12 +391,12 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(titleRect, new Color32(0, 125, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.name, titleRect);
+        gui.Text(loadedPack.CosmeticInfo.cosmeticName, titleRect);
 
         return titleRect;
     }
 
-    private ImRect DrawAuthor(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private ImRect DrawAuthor(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
 
@@ -414,11 +417,11 @@ public class PacksMenu : WKLibWindow
                 
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(authorRect, new Color32(0, 255, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.author, authorRect);
+        gui.Text(loadedPack.CosmeticInfo.author, authorRect);
         return authorRect;
     }
 
-    private ImRect DrawDescription(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private ImRect DrawDescription(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -438,11 +441,11 @@ public class PacksMenu : WKLibWindow
         }
         if (SettingsWindow.DebugUIBoxes)
             gui.Canvas.RectOutline(descriptionRect, new Color32(125, 0, 255, 255), 2f, 0f);
-        gui.Text(loadedPack.desc, descriptionRect, wrap: true, overflow: ImTextOverflow.Ellipsis);
+        gui.Text(loadedPack.CosmeticInfo.description, descriptionRect, wrap: true, overflow: ImTextOverflow.Ellipsis);
         return descriptionRect;
     }
     
-    private bool DrawMakeActive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth, out ImRect rect)
+    private bool DrawMakeActive(ImGui gui, ref ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth, out ImRect rect)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -471,7 +474,7 @@ public class PacksMenu : WKLibWindow
         return gui.Button(">", makeActiveRect);
     }
     
-    private ImRect DrawMakeInactive(ImGui gui, ref ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, bool isOnlyElement, float cellHeight, float cellWidth)
+    private ImRect DrawMakeInactive(ImGui gui, ref ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, bool isOnlyElement, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -502,7 +505,7 @@ public class PacksMenu : WKLibWindow
         return makeInactiveRect;
     }
 
-    private bool DrawMoveUp(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private bool DrawMoveUp(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         
@@ -529,7 +532,7 @@ public class PacksMenu : WKLibWindow
         return gui.Button("^", moveUpRect);
     }
     
-    private bool DrawMoveDown(ImGui gui, ResourcePack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
+    private bool DrawMoveDown(ImGui gui, ICosmeticPack loadedPack, ImRect gridRect, ImRect previousRect, float cellHeight, float cellWidth)
     {
         var spacing = gui.Style.Layout.Spacing;
         

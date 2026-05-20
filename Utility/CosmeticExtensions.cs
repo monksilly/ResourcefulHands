@@ -1,27 +1,62 @@
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace ResourcefulHands.Utility;
 
-public class CosmeticSettings
+public interface ICosmeticPack
 {
-    public string ID { get; set; } = null!;
-    public List<SwapSpriteEntry>? SwapSprites { get; set; }
-    public List<InteractSwapEntry>? InteractSwaps { get; set; }
-    public List<SecondaryTextureEntry>? GlobalSecondary { get; set; }
+    public Cosmetic_Info CosmeticInfo { get; set; }
+
+    public Texture2D Icon { get; set; }
+    
+    public bool IsActive { get; set; }
 }
 
-public class SwapSpriteEntry
+public class CosmeticHandPack : ICosmeticPack
 {
-    public string SpriteName { get; set; } = null!;
-    public List<string> ReplacementSpriteNames { get; set; } = null!;
+    public Cosmetic_HandItem.Cosmetic_HandItem_Data CosmeticData { get; set; }
+    
+    public ExtendedHandItemData ExtendedCosmeticData { get; set; }
+    
+    public Cosmetic_Info CosmeticInfo { get; set; }
+    
+    public Texture2D Icon { get; set; }
+    
+    public bool IsActive { get; set; }
 }
 
-public class InteractSwapEntry
+public class CosmeticVoicePack : ICosmeticPack
 {
-    public string ReplacementSpriteName { get; set; } = null!;
+    public Cosmetic_Voice.Cosmetic_Voice_Data CosmeticData { get; set; }
+
+    public Cosmetic_Info CosmeticInfo { get; set; }
+    
+    public Texture2D Icon { get; set; }
+    
+    public bool IsActive { get; set; }
 }
 
-public class SecondaryTextureEntry
+public class ExtendedHandItemData : Cosmetic_HandItem.Cosmetic_HandItem_Data
+{
+    public new List<EmoteEntry>? emotes { get; set; } = null!;
+}
+
+public class EmoteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.HandEmote
+{
+    public string Sound { get; set; } = null!;
+    public AudioClip SoundClip { get; set; } = null!;
+}
+
+public class PaletteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.ColorPalette {}
+
+public class SwapSpriteEntry : Cosmetic_HandItem.SwapSprite {}
+
+public class InteractSwapEntry : Cosmetic_HandItem.InteractSwap {}
+
+public class SecondaryTextureEntry : Cosmetic_HandItem.SwapSprite.SecondaryTextures
 {
     public List<string> SecondaryTextureNames { get; set; } = null!;
 }
+
+
