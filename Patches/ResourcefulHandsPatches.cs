@@ -109,13 +109,21 @@ public class ResourcefulHandsPatches
     [HarmonyPatch(typeof(ENT_Player))]
     public static class ENT_Player_Patches
     {
-        private static bool[] playingEmotes;
+        private class HandState
+        {
+            public int CurrentEmote = -1;
+            public Vector3 EmoteOffset;
+        }
+
+        private static HandState[]? _handStates;
         
         [HarmonyPostfix]
         [HarmonyPatch("Awake")]
         static void AwakePostfix(ENT_Player __instance)
         {
-            playingEmotes = new bool[__instance.hands.Length];
+            _handStates = new HandState[__instance.hands.Length];
+            for(int i=0 ;i<_handStates.Length;i++)
+                _handStates[i] = new HandState();
         }
         
         [HarmonyPostfix]
@@ -128,20 +136,20 @@ public class ResourcefulHandsPatches
 
         private static void ApplyEmotes(ENT_Player.Hand hand, bool interacting, bool canInteract)
         {
+            if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0 || _handStates == null)
+                return;
+            
             if (interacting || !canInteract || !hand.IsFree())
             {
-                if (playingEmotes[hand.id])
+                if (_handStates[hand.id].CurrentEmote != -1)
                 {
-                    hand.GetViewSway().targetOffset = Vector3.zero;
-                    playingEmotes[hand.id] = false;
-                    ModLogger.Debug("Stop Emote: Is Interacting");
+                    if(_handStates[hand.id].EmoteOffset == hand.GetViewSway().targetOffset)
+                        hand.GetViewSway().targetOffset = Vector3.zero;
+                    _handStates[hand.id].CurrentEmote = -1;
                 }
 
                 return;
             }
-
-            if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0)
-                return;
 
             bool isLeft = hand.id == 0;
             var keyBinds = isLeft ? RHConfig.EmoteKeysLeft : RHConfig.EmoteKeysRight;
@@ -166,21 +174,22 @@ public class ResourcefulHandsPatches
                     hand.GetViewSway().targetOffset =
                         Vector3.Scale(emote.position, hand.handSprite.transform.localScale);
 
-                    if (emote.SoundClip && !playingEmotes[hand.id])
+                    if (emote.SoundClip && _handStates[hand.id].CurrentEmote == -1)
                         AudioManager.PlaySound(emote.SoundClip, hand.handModel);
 
-                    playingEmotes[hand.id] = true;
+                    _handStates[hand.id].CurrentEmote = i;
+                    _handStates[hand.id].EmoteOffset = hand.GetViewSway().targetOffset;
                     playingEmote = true;
                     break;
                 }
 
                 if (!playingEmote)
                 {
-                    if (playingEmotes[hand.id])
+                    if (_handStates[hand.id].CurrentEmote != -1)
                     {
-                        hand.GetViewSway().targetOffset = Vector3.zero;
-                        playingEmotes[hand.id] = false;
-                        ModLogger.Debug("Stop Emote: Not Emoting");
+                        if(_handStates[hand.id].EmoteOffset == hand.GetViewSway().targetOffset)
+                            hand.GetViewSway().targetOffset = Vector3.zero;
+                        _handStates[hand.id].CurrentEmote = -1;
                     }
                 }
             }
