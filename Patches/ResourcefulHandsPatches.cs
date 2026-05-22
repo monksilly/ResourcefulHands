@@ -11,6 +11,7 @@ using ResourcefulHands.Utility;
 using UnityEngine;
 using WKLib.API.Audio;
 using WKLib.API.Input;
+using WKLib.Core.Classes;
 using Random = UnityEngine.Random;
 
 namespace ResourcefulHands.Patches;
@@ -21,35 +22,36 @@ public class ResourcefulHandsPatches
     private class HandState
     {
         public EmoteEntry? CurrentEmote;
-        
+
         public int EmoteSoundIndex;
         public AudioSource? EmoteAudioSource;
-        
+
         public Vector3 OriginalOffset;
+        public Vector3 BaseScaleFactor;
         public Vector3 OriginalScale;
         public Quaternion OriginalRotation;
 
         public Vector3 GetOffset(float side)
         {
             if (CurrentEmote != null)
-                return new Vector3(CurrentEmote.position.x*side,CurrentEmote.position.y, CurrentEmote.position.z);
-            
+                return new Vector3(CurrentEmote.position.x * side, CurrentEmote.position.y, CurrentEmote.position.z);
+
             return OriginalOffset;
         }
 
-        public Vector3 GetScale()
+        public Vector3 GetScale(Vector3 currentScale)
         {
             if (CurrentEmote != null)
-                return Vector3.Scale(OriginalScale, CurrentEmote.Scale);
-            
+                return Vector3.Lerp(currentScale, Vector3.Scale(CurrentEmote.Scale, BaseScaleFactor), Time.deltaTime * 6f);
+
             return OriginalScale;
         }
 
         public Quaternion GetRotation(float side)
         {
             if (CurrentEmote != null)
-                return Quaternion.Euler(0, 0, CurrentEmote.Rotation*side);
-            
+                return Quaternion.Euler(0, 0, CurrentEmote.Rotation * side);
+
             return OriginalRotation;
         }
 
@@ -71,10 +73,21 @@ public class ResourcefulHandsPatches
 
             return null;
         }
+
+        public void StopEmote()
+        {
+            if (CurrentEmote == null) return;
+
+            ModLogger.Debug("Stopped Emote " + CurrentEmote.name);
+            if (CurrentEmote.SoundLoop)
+                EmoteAudioSource?.Stop();
+            EmoteAudioSource = null;
+            CurrentEmote = null;
+        }
     }
 
     private static HandState[]? _handStates;
-    
+
     [HarmonyPatch(typeof(CL_CosmeticManager))]
     public static class CL_CosmeticManager_Patches
     {
@@ -109,7 +122,7 @@ public class ResourcefulHandsPatches
 
                 if (extendedCosmeticHandItemData == null)
                     continue;
-                
+
                 LoadEmotesAssets(extendedCosmeticHandItemData, subdir);
                 PackManager.HandCosmeticExtendedData.Add(extendedCosmeticHandItemData.id, extendedCosmeticHandItemData);
             }
@@ -134,7 +147,7 @@ public class ResourcefulHandsPatches
                 }
             }
         }
-        
+
         private static void LoadEmotesAssets(ExtendedHandItemData handData, string subdir)
         {
             if (handData.emotes == null || handData.emotes.Count == 0)
@@ -155,9 +168,9 @@ public class ResourcefulHandsPatches
 
                 emote.sprite = emoteSprite;
                 List<string> soundsToLoad = new List<string>();
-                if(!string.IsNullOrEmpty(emote.Sound))
+                if (!string.IsNullOrEmpty(emote.Sound))
                     soundsToLoad.Add(emote.Sound);
-                if(emote.SoundFiles is { Count: > 0 })
+                if (emote.SoundFiles is { Count: > 0 })
                     soundsToLoad.AddRange(emote.SoundFiles);
 
                 emote.SoundClips = new List<AudioClip?>();
@@ -183,10 +196,10 @@ public class ResourcefulHandsPatches
         static void AwakePostfix(ENT_Player __instance)
         {
             _handStates = new HandState[__instance.hands.Length];
-            for(int i=0 ;i<_handStates.Length;i++)
+            for (int i = 0; i < _handStates.Length; i++)
                 _handStates[i] = new HandState();
         }
-        
+
         [HarmonyPostfix]
         [HarmonyPatch("HandAnimation")]
         public static void HandAnimationPostfix(ENT_Player __instance, ENT_Player.Hand curhand, bool interacting,
@@ -199,12 +212,10 @@ public class ResourcefulHandsPatches
         {
             if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0 || _handStates == null)
                 return;
-            
+
             if (interacting || !canInteract || !hand.IsFree())
             {
-                _handStates[hand.id].EmoteAudioSource?.Stop();
-                _handStates[hand.id].EmoteAudioSource = null;
-                _handStates[hand.id].CurrentEmote = null;
+                _handStates[hand.id].StopEmote();
                 return;
             }
 
@@ -213,7 +224,7 @@ public class ResourcefulHandsPatches
 
             foreach (var cosmetic in hand.currentCosmetics)
             {
-                if(!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
+                if (!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
                     continue;
 
                 if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count == 0)
@@ -223,29 +234,28 @@ public class ResourcefulHandsPatches
                 for (int i = 0; i < Mathf.Min(pack.ExtendedCosmeticData.emotes.Count, RHConfig.MaxEmotes); i++)
                 {
                     if (keyBinds[i].Value == KeyCode.None) continue;
-                    if (!InputUtility.GetKeyDown(keyBinds[i].Value)) continue;
+                    if (!InputUtility.GetKey(keyBinds[i].Value)) continue;
 
                     var emote = pack.ExtendedCosmeticData.emotes[i];
-                    
-                    if(!emote.sprite) continue;
+
+                    if (!emote.sprite) continue;
 
                     bool changedEmote = _handStates[hand.id].CurrentEmote != emote;
-                    
+
                     hand.SetSprite(emote.sprite);
                     _handStates[hand.id].CurrentEmote = emote;
                     if (changedEmote)
-                        AudioUtility.PlaySound(_handStates[hand.id].GetEmoteSound(), hand.handModel.position, loop: emote.SoundLoop);
-                    
+                        _handStates[hand.id].EmoteAudioSource = AudioUtility.PlaySound(
+                            _handStates[hand.id].GetEmoteSound(), hand.handModel.position, hand.handModel,
+                            loop: emote.SoundLoop, bypassEffects: true, spatial:0, mixerType: AudioMixerType.Sfx);
+
                     playingEmote = true;
                     break;
                 }
 
-                if (!playingEmote)
-                {
-                    _handStates[hand.id].EmoteAudioSource?.Stop();
-                    _handStates[hand.id].EmoteAudioSource = null;
-                    _handStates[hand.id].CurrentEmote = null;
-                }
+                if (playingEmote) continue;
+
+                _handStates[hand.id].StopEmote();
             }
         }
     }
@@ -259,8 +269,9 @@ public class ResourcefulHandsPatches
         {
             if (_handStates == null) return;
             _handStates[__instance.hand.id].OriginalScale = __instance.transform.localScale;
+            _handStates[__instance.hand.id].BaseScaleFactor = __instance.transform.localScale;
         }
-        
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(ViewSway.Update))]
         static void UpdatePrefix(ViewSway __instance)
@@ -269,19 +280,37 @@ public class ResourcefulHandsPatches
             var handState = _handStates[__instance.hand.id];
             handState.OriginalOffset = __instance.targetOffset;
             handState.OriginalRotation = __instance.swayRot;
-            
+
             float handSide = __instance.hand.id == 0 ? -1f : 1f;
             __instance.targetOffset = _handStates[__instance.hand.id].GetOffset(handSide);
-            __instance.transform.localScale = Vector3.Lerp(__instance.transform.localScale, _handStates[__instance.hand.id].GetScale(), Time.deltaTime * 6f);
-            __instance.transform.localRotation = Quaternion.Lerp(__instance.transform.localRotation, handState.GetRotation(handSide) * Quaternion.Euler(Vector3.ClampMagnitude(Random.insideUnitSphere * __instance.shakeAmount * 30f, 20.5f)) * Quaternion.Euler(0.0f, 0.0f, Mathf.Sin(__instance.rockAmount + Time.time) + __instance.parameters.bobBaseRotation * handSide), Time.deltaTime * 6f);
+            __instance.transform.localScale = _handStates[__instance.hand.id].GetScale(__instance.transform.localScale);
+            __instance.transform.localRotation = Quaternion.Lerp(__instance.transform.localRotation,
+                handState.GetRotation(handSide) *
+                Quaternion.Euler(Vector3.ClampMagnitude(Random.insideUnitSphere * __instance.shakeAmount * 30f,
+                    20.5f)) * Quaternion.Euler(0.0f, 0.0f,
+                    Mathf.Sin(__instance.rockAmount + Time.time) + __instance.parameters.bobBaseRotation * handSide),
+                Time.deltaTime * 6f);
         }
-        
+
         [HarmonyPostfix]
         [HarmonyPatch(nameof(ViewSway.Update))]
         static void UpdatePostfix(ViewSway __instance)
         {
             if (_handStates == null) return;
             __instance.targetOffset = _handStates[__instance.hand.id].OriginalOffset;
+        }
+    }
+    
+    [HarmonyPatch(typeof(ENT_Player.Hand))]
+    public static class Hand_Patches
+    {
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(ENT_Player.Hand.SetScale))]
+        static bool UpdatePrefix(ENT_Player.Hand __instance, Vector3 scale)
+        {
+            if (_handStates == null) return true;
+            _handStates[__instance.id].OriginalScale = scale;
+            return false;
         }
     }
 }
