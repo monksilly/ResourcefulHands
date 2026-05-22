@@ -46,7 +46,7 @@ public class RHDebugTools : MonoBehaviour
         else
             Destroy(this);
         
-        if (RHConfig.AlwaysDebug)
+        if (RHConfig.AlwaysDebug.Value)
             isOn = true;
         
         _style = new GUIStyle
