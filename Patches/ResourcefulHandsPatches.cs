@@ -268,8 +268,8 @@ public class ResourcefulHandsPatches
         static void StartPostfix(ViewSway __instance)
         {
             if (_handStates == null) return;
-            _handStates[__instance.hand.id].OriginalScale = __instance.transform.localScale;
-            _handStates[__instance.hand.id].BaseScaleFactor = __instance.transform.localScale;
+            _handStates[__instance.hand.id].OriginalScale = __instance.hand.handModel.localScale;
+            _handStates[__instance.hand.id].BaseScaleFactor = __instance.hand.handModel.localScale;
         }
 
         [HarmonyPrefix]
@@ -282,14 +282,7 @@ public class ResourcefulHandsPatches
             handState.OriginalRotation = __instance.swayRot;
 
             float handSide = __instance.hand.id == 0 ? -1f : 1f;
-            __instance.targetOffset = _handStates[__instance.hand.id].GetOffset(handSide);
-            __instance.transform.localScale = _handStates[__instance.hand.id].GetScale(__instance.transform.localScale);
-            __instance.transform.localRotation = Quaternion.Lerp(__instance.transform.localRotation,
-                handState.GetRotation(handSide) *
-                Quaternion.Euler(Vector3.ClampMagnitude(Random.insideUnitSphere * __instance.shakeAmount * 30f,
-                    20.5f)) * Quaternion.Euler(0.0f, 0.0f,
-                    Mathf.Sin(__instance.rockAmount + Time.time) + __instance.parameters.bobBaseRotation * handSide),
-                Time.deltaTime * 6f);
+            __instance.targetOffset = handState.GetOffset(handSide);
         }
 
         [HarmonyPostfix]
@@ -297,7 +290,16 @@ public class ResourcefulHandsPatches
         static void UpdatePostfix(ViewSway __instance)
         {
             if (_handStates == null) return;
-            __instance.targetOffset = _handStates[__instance.hand.id].OriginalOffset;
+            var handState = _handStates[__instance.hand.id];
+            float handSide = __instance.hand.id == 0 ? -1f : 1f;
+            
+            __instance.targetOffset = handState.OriginalOffset;
+            __instance.transform.localRotation = Quaternion.Lerp(__instance.transform.localRotation,
+                handState.GetRotation(handSide) *
+                Quaternion.Euler(Vector3.ClampMagnitude(Random.insideUnitSphere * __instance.shakeAmount * 30f,
+                    20.5f)) * Quaternion.Euler(0.0f, 0.0f,
+                    Mathf.Sin(__instance.rockAmount + Time.time) + __instance.parameters.bobBaseRotation * handSide),
+                Time.deltaTime * 6f);
         }
     }
     
@@ -311,6 +313,15 @@ public class ResourcefulHandsPatches
             if (_handStates == null) return true;
             _handStates[__instance.id].OriginalScale = scale;
             return false;
+        }
+        
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ENT_Player.Hand.ScaleUpdate))]
+        static void LateUpdatePost(ENT_Player.Hand __instance)
+        {
+            if (_handStates == null) return;
+            var handState = _handStates[__instance.id];
+            __instance.handModel.localScale = handState.GetScale(__instance.handModel.localScale);
         }
     }
 }
