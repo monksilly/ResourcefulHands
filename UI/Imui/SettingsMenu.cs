@@ -3,6 +3,7 @@ using Imui.Core;
 using ResourcefulHands.Systems;
 using WKLib.API;
 using WKLib.API.UI;
+using static ResourcefulHands.Core.RHConfig;
 
 namespace ResourcefulHands.UI.Imui;
 
@@ -17,13 +18,24 @@ public class SettingsMenu : WKLibWindow
         
         if (!gui.BeginWindow("RH Settings", ref isOpen, new ImSize(400, 400), ImWindowFlag.None))
             return;
+
+        gui.Separator("General");
+        UIUtility.DrawConfigEntry(gui, LazyManip);
+        UIUtility.DrawConfigEntry(gui, UseOldSprReplace);
+        UIUtility.DrawConfigEntry(gui, UseOutdatedPacks);
         
-        gui.Separator("Settings");
+        gui.AddSpacing();
+        gui.Separator("Emotes");
+        for (int i = 0; i < MaxEmotes; i++)
+        {
+            UIUtility.DrawConfigEntry(gui, EmoteKeysLeft[i]);
+            UIUtility.DrawConfigEntry(gui, EmoteKeysRight[i]);
+        }
         
-        if (gui.Checkbox(ref ConfigManager.ExpandVanillaAudioOverrides.RefValue, "Expand vanilla audio overrides"))
-            Plugin.WKLibAPI.DefaultConfigFile.SaveSync();
-        
-        gui.TooltipAtLastControl("Enabling this allows vanilla voice cosmetics to modify\nmore sounds outside of just player and movement sounds.");
+        gui.AddSpacing();
+        gui.Separator("Debugging");
+        UIUtility.DrawConfigEntry(gui, ColorConsole);
+        UIUtility.DrawConfigEntry(gui, AlwaysDebug);
         
 #if DEBUG
         gui.Checkbox(ref DebugUIBoxes, "Debug UI Boxes");

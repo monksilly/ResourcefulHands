@@ -14,22 +14,17 @@ public static class RHConfig
 {
     // --- GENERAL ---
     // Lazy loading
-    private static ConfigEntry<bool>? lazyManip = null;
-    public static bool LazyManip => lazyManip?.Value ?? false;
+    public static ConfigEntry<bool>? LazyManip = null;
     // Use old sprite replacer
-    private static ConfigEntry<bool>? useOldSpr = null;
-    public static bool UseOldSprReplace => useOldSpr?.Value ?? false;
+    public static ConfigEntry<bool>? UseOldSprReplace = null;
     // Don't load outdated packs
-    private static ConfigEntry<bool>? useOutdatedPacks = null;
-    public static bool UseOutdatedPacks => useOutdatedPacks?.Value ?? false;
+    public static ConfigEntry<bool>? UseOutdatedPacks = null;
     
     // --- DEBUG STUFF ---
     // Colored console
-    private static ConfigEntry<bool>? colorConsole = null;
-    public static bool ColoredConsole => colorConsole?.Value ?? false;
+    public static ConfigEntry<bool>? ColorConsole = null;
     // Always debug mode
-    private static ConfigEntry<bool>? alwaysDebug = null;
-    public static bool AlwaysDebug => alwaysDebug?.Value ?? false;
+    public static ConfigEntry<bool>? AlwaysDebug = null;
     
     public const int MaxEmotes = 10;
     
@@ -120,9 +115,61 @@ public static class RHConfig
         }
     }
     
-    internal static void InitConfigs()
+    internal static void InitConfigs(ConfigFile Config)
     {
         ModLogger.Info("Initialising configs...");
+        
+        // Bind configs
+        ModLogger.Debug("Binding configs with bepinex...");
+        
+        // General
+        LazyManip = Config.Bind(
+            "General",
+            "Lazy Loading",
+            true,
+            $"When enabled every pack doesn't get reloaded when reordering or enabling/disabling packs in the settings menu."
+        );
+        ModLogger.Debug("Bound LazyManip");
+        UseOldSprReplace = Config.Bind(
+            "General",
+            "Use Old Sprite Replacer",
+            false,
+            $"A new sprite replacer (the thing that lets you have custom hands) has been added, hopefully this should improve performance. However, if you do have issues with this new replacer, turn this on to disable it."
+        );
+        ModLogger.Debug("Bound UseOldSprReplace");
+        UseOutdatedPacks = Config.Bind(
+            "General",
+            "Load outdated packs",
+            true,
+            $"When enabled packs that are made with an older pack-version/game-version won't be loaded."
+        );
+        ModLogger.Debug("Bound UseOutdatedPacks");
+        
+        // Debugging
+        ColorConsole = Config.Bind(
+            "Debugging",
+            "Color Console",
+            // decided to disable by default because it's a bit prestigious to have rh do it automatically
+            // instead people could turn it on to help see errors in the console i guess, also i like the looks
+            false, 
+            $"When enabled certain logs are given colors, disable if this is causing issues. Additionally, only works on windows."
+        );
+        ModLogger.Debug("Bound ColorConsole");
+        AlwaysDebug = Config.Bind(
+            "Debugging",
+            "Always debug mode",
+            false,
+            $"When enabled pack debug mode is always enabled unless toggled via the command ({RHCommands.ToggleDebug})."
+        );
+        ModLogger.Debug("Bound AlwaysDebug");
+        
+        for (int i = 0; i < MaxEmotes; i++)
+        {
+            EmoteKeysLeft.Add(Config.Bind("Emotes", "Emote Key Left " + i, KeyCode.None));
+            ModLogger.Debug("Bound Emote Key Left" + i);
+            EmoteKeysRight.Add(Config.Bind("Emotes", "Emote Key Right " + i, KeyCode.None));
+            ModLogger.Debug("Bound Emote Key Right" + i);
+        }
         
         ModLogger.Debug("Checking generic folder...");
         if (!Directory.Exists(GenericFolder))
@@ -137,57 +184,5 @@ public static class RHConfig
             ResourcePacksManager.SaveDisabledPacks();
             PackPrefs.Save();
         };
-        
-        // bind configs
-        ModLogger.Debug("Binding configs with bepinex...");
-        
-        // General
-        lazyManip = Plugin.Instance.Config.Bind(
-            "General",
-            "Lazy Loading",
-            true,
-            $"When enabled every pack doesn't get reloaded when reordering or enabling/disabling packs in the settings menu."
-        );
-        ModLogger.Debug("Bound lazyManip");
-        useOldSpr = Plugin.Instance.Config.Bind(
-            "General",
-            "Use Old Sprite Replacer",
-            false,
-            $"A new sprite replacer (the thing that lets you have custom hands) has been added, hopefully this should improve performance. However, if you do have issues with this new replacer, turn this on to disable it."
-        );
-        ModLogger.Debug("Bound useOldSpr");
-        useOutdatedPacks = Plugin.Instance.Config.Bind(
-            "General",
-            "Load outdated packs?",
-            true,
-            $"When enabled packs that are made with an older pack-version/game-version won't be loaded."
-        );
-        ModLogger.Debug("Bound useOutdatedPacks");
-        
-        // Debugging
-        colorConsole = Plugin.Instance.Config.Bind(
-            "Debugging",
-            "Colored Console",
-            // decided to disable by default because it's a bit prestigious to have rh do it automatically
-            // instead people could turn it on to help see errors in the console i guess, also i like the looks
-            false, 
-            $"When enabled certain logs are given colors, disable if this is causing issues. Additionally, only works on windows."
-        );
-        ModLogger.Debug("Bound colorConsole");
-        alwaysDebug = Plugin.Instance.Config.Bind(
-            "Debugging",
-            "Always debug mode",
-            false,
-            $"When enabled pack debug mode is always enabled unless toggled via the command ({RHCommands.ToggleDebug})."
-        );
-        ModLogger.Debug("Bound alwaysDebug");
-        
-        for (int i = 0; i < MaxEmotes; i++)
-        {
-            EmoteKeysLeft.Add(Plugin.Instance.Config.Bind("Emotes", "Emote Key Left " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Left" + i);
-            EmoteKeysRight.Add(Plugin.Instance.Config.Bind("Emotes", "Emote Key Right " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Right" + i);
-        }
     }
 }

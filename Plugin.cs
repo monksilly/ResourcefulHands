@@ -52,13 +52,17 @@ public class Plugin : BaseUnityPlugin
     {
         ModLogger.InitLog(Logger);
         
-        ModLogger.Debug("Patching...");
-        Harmony = new Harmony(Guid);
-        Harmony.PatchAll();
+        ModLogger.Debug("Checking for old RH version...");
         // Check for old RH and disable if found
         CheckDeprecation();
         // Checks if the mod is in any compatible version!
         VersionChecker.Check();
+        
+        RHConfig.InitConfigs(Config);
+        
+        ModLogger.Debug("Patching...");
+        Harmony = new Harmony(Guid);
+        Harmony.PatchAll();
      
         gameObject.hideFlags = HideFlags.HideAndDontSave;
         
@@ -66,7 +70,6 @@ public class Plugin : BaseUnityPlugin
         _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         
         Instance = this;
-        RHConfig.InitConfigs();
         
         ModLogger.Debug("Initializing UI...");
         WKLibAPI.AddToModList(new ModListTab());

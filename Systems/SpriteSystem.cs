@@ -15,7 +15,7 @@ public static class SpriteSystem
 
     public static void StartReplacementThreads()
     {
-        if (RHConfig.UseOldSprReplace)
+        if (RHConfig.UseOldSprReplace.Value)
         {
             ModLogger.Log.LogInfo("Using Legacy Sprite Replacement.");
             CoroutineDispatcher.AddToUpdate(UpdateSpritesLegacy);

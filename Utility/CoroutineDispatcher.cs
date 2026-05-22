@@ -68,20 +68,28 @@ internal class CoroutineDispatcher : MonoBehaviour
         [CallerFilePath] string file = "")
     {
         bool hasRan = false;
-        threadQueue.Enqueue(() =>
+        lock (threadQueue)
         {
-            ModLogger.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
-            try
-            { action(); }
-            catch (Exception e)
-            { ModLogger.Error(e); }
-            hasRan = true;
-        });
+            threadQueue.Enqueue(() =>
+            {
+                ModLogger.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    ModLogger.Error(e);
+                }
+
+                hasRan = true;
+            });
+        }
 
         int fps = Mathf.Clamp(Plugin.TargetFps, -1, 120);
         if (fps < 1) fps = 60;
         
-        // wait at around the speed of the current fps
+        // wait at around the speed of the current fps  
         // this isn't the exact fps because it would be overkill
         while (!hasRan)
             await Task.Delay(Mathf.FloorToInt((1.0f/fps)*1000)); 
@@ -95,7 +103,10 @@ internal class CoroutineDispatcher : MonoBehaviour
     /// <param name="action"></param>
     public static void RunOnMainThread(Action action)
     {
-        threadQueue.Enqueue(action);
+        lock (threadQueue)
+        {
+            threadQueue.Enqueue(action);
+        }
     }
     
     /// <summary>
@@ -109,8 +120,11 @@ internal class CoroutineDispatcher : MonoBehaviour
             action();
             return;
         }
-        
-        threadQueue.Enqueue(action);
+
+        lock (threadQueue)
+        {
+            threadQueue.Enqueue(action);
+        }
     }
 
     public static string AddToUpdate(Action action)
@@ -122,23 +136,36 @@ internal class CoroutineDispatcher : MonoBehaviour
         }
         
         string guid = Guid.NewGuid().ToString();
-        updateActions.Add(guid, action);
+        lock (updateActions)
+        {
+            updateActions.Add(guid, action);
+        }
+
         return guid;
     }
     public static void RemoveFromUpdate(string guid)
     {
-        updateActions.Remove(guid);
+        lock (updateActions)
+        {
+            updateActions.Remove(guid);
+        }
     }
 
     public void LateUpdate()
     {
-        foreach (var updateAction in updateActions.Values)
-            updateAction();
-
-        while (threadQueue.Count > 0)
+        lock (updateActions)
         {
-            Action action = threadQueue.Dequeue();
-            action?.Invoke();
+            foreach (var updateAction in updateActions.Values)
+                updateAction();
+        }
+
+        lock (threadQueue)
+        {
+            while (threadQueue.Count > 0)
+            {
+                Action action = threadQueue.Dequeue();
+                action?.Invoke();
+            }
         }
     }
 }

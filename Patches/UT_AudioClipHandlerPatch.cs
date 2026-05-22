@@ -12,9 +12,7 @@ public class UT_AudioClipHandlerPatch
     [HarmonyPatch(typeof(UT_AudioClipHandler), nameof(UT_AudioClipHandler.Initialize)), HarmonyPostfix]
     public static void UT_AudioClipHandler_Initialize(UT_AudioClipHandler __instance)
     {
-	    if (!ConfigManager.ExpandVanillaAudioOverrides)
-		    return;
-	    
+
 	    ModLogger.Debug(__instance.gameObject.name + ": Initialize");
 	    if (!CL_CosmeticManager.initialized)
 	    {
