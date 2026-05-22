@@ -50,7 +50,7 @@ public enum SoundPlayMode
 
 public class EmoteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.HandEmote
 {
-    public Vector3 Scale { get; set; }
+    public Vector3 Scale { get; set; } = Vector3.one;
     public float Rotation { get; set; }
     public string Sound { get; set; } = null!;
     public List<string> SoundFiles { get; set; } = null!;

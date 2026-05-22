@@ -34,7 +34,7 @@ public class ResourcefulHandsPatches
         public Vector3 GetOffset(float side)
         {
             if (CurrentEmote != null)
-                return new Vector3(CurrentEmote.position.x * side, CurrentEmote.position.y, CurrentEmote.position.z);
+                return new Vector3(CurrentEmote.position.x * -side, CurrentEmote.position.y, CurrentEmote.position.z);
 
             return OriginalOffset;
         }
