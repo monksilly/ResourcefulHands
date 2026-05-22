@@ -20,8 +20,6 @@ public class SettingsMenu : WKLibWindow
         
         gui.Separator("Settings");
         
-        if (gui.Checkbox(ref ConfigManager.ExpandVanillaAudioOverrides.RefValue, "Expand vanilla audio overrides"))
-            Plugin.WKLibAPI.DefaultConfigFile.SaveSync();
         
         gui.TooltipAtLastControl("Enabling this allows vanilla voice cosmetics to modify\nmore sounds outside of just player and movement sounds.");
         
