@@ -42,10 +42,21 @@ public class ExtendedHandItemData : Cosmetic_HandItem.Cosmetic_HandItem_Data
     public new List<EmoteEntry>? emotes { get; set; } = null!;
 }
 
+public enum SoundPlayMode
+{
+    Random,
+    Sequential
+}
+
 public class EmoteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.HandEmote
 {
+    public Vector3 Scale { get; set; }
+    public float Rotation { get; set; }
     public string Sound { get; set; } = null!;
-    public AudioClip SoundClip { get; set; } = null!;
+    public List<string> SoundFiles { get; set; } = null!;
+    public List<AudioClip?> SoundClips { get; set; } = null!;
+    public SoundPlayMode SoundPlayMode { get; set; } = SoundPlayMode.Random;
+    public bool SoundLoop { get; set; } = false;
 }
 
 public class PaletteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.ColorPalette {}
