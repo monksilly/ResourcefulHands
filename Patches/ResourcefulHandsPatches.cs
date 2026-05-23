@@ -21,15 +21,32 @@ public class ResourcefulHandsPatches
 {
     private class HandState
     {
+        public ENT_Player.Hand Hand;
         public EmoteEntry? CurrentEmote;
 
         public int EmoteSoundIndex;
         public AudioSource? EmoteAudioSource;
+        public float EmoteTime;
 
         public Vector3 OriginalOffset;
         public Vector3 BaseScaleFactor;
         public Vector3 OriginalScale;
         public Quaternion OriginalRotation;
+
+        public void SetEmote(EmoteEntry? emote, bool force = false)
+        {
+            if (CurrentEmote != null && !force || emote == null) return;
+            bool changedEmote = CurrentEmote != emote;
+            
+            CurrentEmote = emote; 
+            if (changedEmote)
+                EmoteAudioSource = AudioUtility.PlaySound(
+                    GetEmoteSound(), Hand.handModel.position, Hand.handModel,
+                    loop: CurrentEmote.SoundLoop, bypassEffects: true, mixerType: AudioMixerType.Sfx);
+            
+            if(CurrentEmote.PlayMode is EmotePlayMode.Loop or EmotePlayMode.Once)
+                EmoteTime = Time.time;
+        }
 
         public Vector3 GetOffset(float side)
         {
@@ -83,6 +100,32 @@ public class ResourcefulHandsPatches
                 EmoteAudioSource?.Stop();
             EmoteAudioSource = null;
             CurrentEmote = null;
+        }
+
+        public void ApplyState()
+        {
+            ApplyEmote();
+        }
+
+        private void ApplyEmote()
+        {
+            if (CurrentEmote == null) return;
+            var spriteIndex = 0;
+
+            switch (CurrentEmote.PlayMode)
+            {
+                case EmotePlayMode.Loop:
+                    spriteIndex = Mathf.FloorToInt(Mathf.Repeat((Time.time-EmoteTime) * CurrentEmote.Framerate, CurrentEmote.Sprites.Count));
+                    break;
+                case EmotePlayMode.LoopGlobal:
+                    spriteIndex = Mathf.FloorToInt(Mathf.Repeat(Time.time * CurrentEmote.Framerate, CurrentEmote.Sprites.Count));
+                    break;
+                case EmotePlayMode.Once:
+                    spriteIndex = Mathf.FloorToInt(Mathf.Min((Time.time-EmoteTime) * CurrentEmote.Framerate, CurrentEmote.Sprites.Count-1));
+                    break;
+            }
+            
+            Hand.SetSprite(CurrentEmote.Sprites[spriteIndex]);
         }
     }
 
@@ -159,14 +202,23 @@ public class ResourcefulHandsPatches
             {
                 var emote = handData.emotes[emoteIndex];
 
-                if (string.IsNullOrEmpty(emote.spriteName))
-                    continue;
+                // Loading Sprites
+                List<string> spritesToLoad = new List<string>();
+                if (!string.IsNullOrEmpty(emote.spriteName))
+                    spritesToLoad.Add(emote.spriteName);
+                if (emote.SpriteNames is { Count: > 0 })
+                    spritesToLoad.AddRange(emote.SpriteNames);
 
-                var emoteSprite = RuntimeSpriteImporter.LoadSpriteFromFile(
-                    Path.Combine(subdir, "Sprites", emote.spriteName + ".png"), linear: loadLinear);
-                emoteSprite.name = emote.spriteName;
+                emote.Sprites = new List<Sprite>();
+                foreach (string spriteName in spritesToLoad)
+                {
+                    var newSprite = RuntimeSpriteImporter.LoadSpriteFromFile(
+                        Path.Combine(subdir, "Sprites", spriteName + ".png"), linear: loadLinear);
+                    newSprite.name = spriteName;
+                    emote.Sprites.Add(newSprite);
+                }
 
-                emote.sprite = emoteSprite;
+                // Loading Sounds
                 List<string> soundsToLoad = new List<string>();
                 if (!string.IsNullOrEmpty(emote.Sound))
                     soundsToLoad.Add(emote.Sound);
@@ -197,7 +249,10 @@ public class ResourcefulHandsPatches
         {
             _handStates = new HandState[__instance.hands.Length];
             for (int i = 0; i < _handStates.Length; i++)
+            {
                 _handStates[i] = new HandState();
+                _handStates[i].Hand = __instance.hands[i];
+            }
         }
 
         [HarmonyPostfix]
@@ -205,12 +260,15 @@ public class ResourcefulHandsPatches
         public static void HandAnimationPostfix(ENT_Player __instance, ENT_Player.Hand curhand, bool interacting,
             bool canInteract)
         {
+            if (_handStates == null) return;
+            
             ApplyEmotes(curhand, interacting, canInteract);
+            _handStates[curhand.id].ApplyState();
         }
 
         private static void ApplyEmotes(ENT_Player.Hand hand, bool interacting, bool canInteract)
         {
-            if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0 || _handStates == null)
+            if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0)
                 return;
 
             if (interacting || !canInteract || !hand.IsFree())
@@ -238,16 +296,9 @@ public class ResourcefulHandsPatches
 
                     var emote = pack.ExtendedCosmeticData.emotes[i];
 
-                    if (!emote.sprite) continue;
-
-                    bool changedEmote = _handStates[hand.id].CurrentEmote != emote;
-
-                    hand.SetSprite(emote.sprite);
-                    _handStates[hand.id].CurrentEmote = emote; 
-                    if (changedEmote)
-                        _handStates[hand.id].EmoteAudioSource = AudioUtility.PlaySound(
-                            _handStates[hand.id].GetEmoteSound(), hand.handModel.position, hand.handModel,
-                            loop: emote.SoundLoop, bypassEffects: true, mixerType: AudioMixerType.Sfx);
+                    if (emote.Sprites.Count == 0) continue;
+                    var handState = _handStates[hand.id];
+                    handState.SetEmote(emote);
 
                     playingEmote = true;
                     break;

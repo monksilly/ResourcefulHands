@@ -48,8 +48,19 @@ public enum SoundPlayMode
     Sequential
 }
 
+public enum EmotePlayMode
+{
+    Loop,
+    LoopGlobal,
+    Once,
+}
+
 public class EmoteEntry : Cosmetic_HandItem.Cosmetic_HandItem_Data.HandEmote
 {
+    public List<string> SpriteNames { get; set; } = null!;
+    public List<Sprite> Sprites { get; set; } = null!;
+    public float Framerate { get; set; } = 1;
+    public EmotePlayMode PlayMode { get; set; } = EmotePlayMode.Loop;
     public Vector3 Scale { get; set; } = Vector3.one;
     public float Rotation { get; set; }
     public string Sound { get; set; } = null!;
