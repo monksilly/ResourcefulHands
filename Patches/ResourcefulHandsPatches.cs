@@ -151,7 +151,8 @@ public class ResourcefulHandsPatches
         {
             if(!HandExtensions.TryGet(__instance.hand, out var handExtension)) return;
             handExtension.originalScale = __instance.hand.handModel.localScale;
-            handExtension.baseScaleFactor = __instance.hand.handModel.localScale;
+            if(handExtension.baseScaleFactor == Vector3.zero)
+                handExtension.baseScaleFactor = __instance.hand.handModel.localScale;
         }
 
         [HarmonyPrefix]
@@ -171,8 +172,10 @@ public class ResourcefulHandsPatches
         {
             if(!HandExtensions.TryGet(__instance.hand, out var handExtension)) return;
             
-            __instance.targetOffset = handExtension.originalOffset;
             handExtension.ApplyRotation();
+            
+            __instance.targetOffset = handExtension.originalOffset;
+            __instance.swayRot = handExtension.originalRotation;
         }
     }
     

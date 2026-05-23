@@ -27,14 +27,12 @@ public static class RHConfig
     public static ConfigEntry<bool>? AlwaysDebug = null;
     
     public const int MaxEmotes = 10;
-    
-    private static readonly List<ConfigEntry<KeyCode>> emoteKeysLeft = new();
-    public static List<ConfigEntry<KeyCode>> EmoteKeysLeft => emoteKeysLeft;
 
-    private static readonly List<ConfigEntry<KeyCode>> emoteKeysRight = new();
-    public static List<ConfigEntry<KeyCode>> EmoteKeysRight => emoteKeysRight;
+    public static List<ConfigEntry<KeyCode>> EmoteKeysLeft { get; } = new();
+    public static List<ConfigEntry<KeyCode>> EmoteKeysRight { get; } = new();
+    public static List<ConfigEntry<bool>> EmoteToggles { get; } = new();
 
-    
+
     // Config folder stuff
     public static string PacksFolder => Path.Combine(Paths.ConfigPath, "RHPacks");
     public static string GenericFolder => Path.Combine(Paths.ConfigPath, "RHConfig");
@@ -166,9 +164,11 @@ public static class RHConfig
         for (int i = 0; i < MaxEmotes; i++)
         {
             EmoteKeysLeft.Add(Config.Bind("Emotes", "Emote Key Left " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Left" + i);
+            ModLogger.Debug("Bound Emote Key Left " + i);
             EmoteKeysRight.Add(Config.Bind("Emotes", "Emote Key Right " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Right" + i);
+            ModLogger.Debug("Bound Emote Key Right " + i);
+            EmoteToggles.Add(Config.Bind("Emotes", "Emote Toggle " + i, false));
+            ModLogger.Debug("Emote Toggle " + i);
         }
         
         ModLogger.Debug("Checking generic folder...");

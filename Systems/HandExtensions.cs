@@ -67,24 +67,32 @@ public class HandExtensions : MonoBehaviour
             if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count == 0)
                 continue;
 
-            bool playingEmote = false;
             for (int i = 0; i < Mathf.Min(pack.ExtendedCosmeticData.emotes.Count, RHConfig.MaxEmotes); i++)
             {
                 if (keyBinds[i].Value == KeyCode.None) continue;
-                if (!InputUtility.GetKey(keyBinds[i].Value)) continue;
-
                 var emote = pack.ExtendedCosmeticData.emotes[i];
-
                 if (emote.Sprites.Count == 0) continue;
-                SetEmote(emote);
 
-                playingEmote = true;
-                break;
+                if (InputUtility.GetKeyDown(keyBinds[i].Value))
+                {
+                    if (RHConfig.EmoteToggles[i].Value && _currentEmote == emote)
+                    {
+                        StopEmote();
+                    }
+                    else
+                    {
+                        SetEmote(emote);
+                    }
+                    
+                    break;
+                }
+
+                if(InputUtility.GetKeyUp(keyBinds[i].Value) && !RHConfig.EmoteToggles[i].Value && _currentEmote == emote)
+                {
+                    StopEmote();
+                    break;
+                }
             }
-
-            if (playingEmote) continue;
-
-            StopEmote();
         }
     }
 
