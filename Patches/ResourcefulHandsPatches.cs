@@ -243,11 +243,11 @@ public class ResourcefulHandsPatches
                     bool changedEmote = _handStates[hand.id].CurrentEmote != emote;
 
                     hand.SetSprite(emote.sprite);
-                    _handStates[hand.id].CurrentEmote = emote;
+                    _handStates[hand.id].CurrentEmote = emote; 
                     if (changedEmote)
                         _handStates[hand.id].EmoteAudioSource = AudioUtility.PlaySound(
                             _handStates[hand.id].GetEmoteSound(), hand.handModel.position, hand.handModel,
-                            loop: emote.SoundLoop, bypassEffects: true, spatial:0, mixerType: AudioMixerType.Sfx);
+                            loop: emote.SoundLoop, bypassEffects: true, mixerType: AudioMixerType.Sfx);
 
                     playingEmote = true;
                     break;
