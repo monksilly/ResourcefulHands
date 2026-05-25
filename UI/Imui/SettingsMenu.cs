@@ -26,11 +26,14 @@ public class SettingsMenu : WKLibWindow
         
         gui.AddSpacing();
         gui.Separator("Emotes");
-        for (int i = 0; i < MaxEmotes; i++)
-        {
-            UIUtility.DrawConfigEntry(gui, EmoteKeysLeft[i]);
-            UIUtility.DrawConfigEntry(gui, EmoteKeysRight[i]);
-        }
+        UIUtility.DrawConfigEntry(gui, EmoteWheelKey);
+        UIUtility.DrawConfigEntry(gui, EmoteWheelKeyAlt);
+        UIUtility.DrawConfigEntry(gui, ToggleWheel);
+        UIUtility.DrawConfigEntry(gui, EmoteLeftKey);
+        UIUtility.DrawConfigEntry(gui, EmoteLeftKeyAlt);
+        UIUtility.DrawConfigEntry(gui, EmoteRightKey);
+        UIUtility.DrawConfigEntry(gui, EmoteRightKeyAlt);
+        UIUtility.DrawConfigEntry(gui, ToggleEmotes);
         
         gui.AddSpacing();
         gui.Separator("Debugging");

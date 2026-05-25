@@ -11,6 +11,7 @@ using BepInEx.Bootstrap;
 using HarmonyLib;
 using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
+using ResourcefulHands.EmbedResources;
 using ResourcefulHands.Patches;
 using ResourcefulHands.Systems;
 using ResourcefulHands.UI;
@@ -75,6 +76,8 @@ public class Plugin : BaseUnityPlugin
         WKLibAPI.AddToModList(new ModListTab());
         WKLibAPI.AddWindow(WindowsDeclarations.PacksWindow);
         WKLibAPI.AddWindow(WindowsDeclarations.SettingsWindow);
+        
+        RHResources.InitResources();
         
         ModLogger.Debug("Hooking loaded event...");
         var hasLoadedIntro = false;

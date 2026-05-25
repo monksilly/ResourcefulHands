@@ -140,6 +140,13 @@ public class ResourcefulHandsPatches
             if(HandExtensions.TryGet(curhand, out var handExtension))
                 handExtension.ApplySprite();
         }
+        
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ENT_Player.Awake))]
+        public static void AwakePostfix()
+        {
+            new GameObject("EmoteWheel").AddComponent<EmoteWheel>();
+        }
     }
 
     [HarmonyPatch(typeof(ViewSway))]

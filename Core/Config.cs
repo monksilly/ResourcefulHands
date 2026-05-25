@@ -28,9 +28,16 @@ public static class RHConfig
     
     public const int MaxEmotes = 10;
 
-    public static List<ConfigEntry<KeyCode>> EmoteKeysLeft { get; } = new();
-    public static List<ConfigEntry<KeyCode>> EmoteKeysRight { get; } = new();
-    public static List<ConfigEntry<bool>> EmoteToggles { get; } = new();
+    public static ConfigEntry<KeyCode> EmoteWheelKey { get; private set; }
+    public static ConfigEntry<KeyCode> EmoteWheelKeyAlt { get; private set; }
+    public static ConfigEntry<bool> ToggleWheel { get; private set; }
+    public static ConfigEntry<KeyCode> EmoteLeftKey { get; private set; }
+    public static ConfigEntry<KeyCode> EmoteLeftKeyAlt { get; private set; }
+    public static ConfigEntry<KeyCode> EmoteRightKey { get; private set; }
+    public static ConfigEntry<KeyCode> EmoteRightKeyAlt { get; private set; }
+    public static ConfigEntry<bool> ToggleEmotes { get; private set; }
+    public static ConfigEntry<int> LeftEmote { get; private set; }
+    public static ConfigEntry<int> RightEmote { get; private set; }
 
 
     // Config folder stuff
@@ -161,15 +168,26 @@ public static class RHConfig
         );
         ModLogger.Debug("Bound AlwaysDebug");
         
-        for (int i = 0; i < MaxEmotes; i++)
-        {
-            EmoteKeysLeft.Add(Config.Bind("Emotes", "Emote Key Left " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Left " + i);
-            EmoteKeysRight.Add(Config.Bind("Emotes", "Emote Key Right " + i, KeyCode.None));
-            ModLogger.Debug("Bound Emote Key Right " + i);
-            EmoteToggles.Add(Config.Bind("Emotes", "Emote Toggle " + i, false));
-            ModLogger.Debug("Emote Toggle " + i);
-        }
+        EmoteWheelKey = Config.Bind("Emotes", "Emote Wheel", KeyCode.None);
+        ModLogger.Debug("Bound Emote Wheel");
+        EmoteWheelKeyAlt = Config.Bind("Emotes", "Emote Wheel Alt", KeyCode.None);
+        ModLogger.Debug("Bound Emote Wheel Alt");
+        ToggleWheel = Config.Bind("Emotes", "Toggle Wheel", false);
+        ModLogger.Debug("Bound Toggle Wheel");
+        EmoteLeftKey = Config.Bind("Emotes", "Emote Key Left", KeyCode.None);
+        ModLogger.Debug("Bound Emote Key Left");
+        EmoteLeftKeyAlt = Config.Bind("Emotes", "Emote Key Left Alt", KeyCode.None);
+        ModLogger.Debug("Bound Emote Key Left Alt");
+        EmoteRightKey = Config.Bind("Emotes", "Emote Key Right", KeyCode.None);
+        ModLogger.Debug("Bound Emote Key Right");
+        EmoteRightKeyAlt = Config.Bind("Emotes", "Emote Key Right Alt", KeyCode.None);
+        ModLogger.Debug("Bound Emote Key Right Alt");
+        ToggleEmotes = Config.Bind("Emotes", "Toggle Emotes", false);
+        ModLogger.Debug("Bound Toggle Emotes");
+        LeftEmote = Config.Bind("Emotes", "Left Emote", 0, new ConfigDescription(string.Empty, null, "Hidden"));
+        ModLogger.Debug("Bound Left Emote");
+        RightEmote = Config.Bind("Emotes", "Right Emote", 0, new ConfigDescription(string.Empty, null, "Hidden"));
+        ModLogger.Debug("Bound Right Emote");
         
         ModLogger.Debug("Checking generic folder...");
         if (!Directory.Exists(GenericFolder))

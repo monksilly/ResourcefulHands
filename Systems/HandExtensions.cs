@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ResourcefulHands.Assets;
 using ResourcefulHands.Core;
 using ResourcefulHands.Utility;
@@ -27,8 +28,23 @@ public class HandExtensions : MonoBehaviour
     public Vector3 baseScaleFactor;
     public Vector3 originalScale;
     public Quaternion originalRotation;
-
+    
+    private const string KeyInteractLeft = "Hand-Left";
+    private const string KeyInteractRight = "Hand-Right";
+    
     private bool IsLeft => _hand.id == 0;
+    
+    public static bool TryGet(ENT_Player.Hand? hand, out HandExtensions? ext)
+    {
+        ext = null;
+        return hand != null && _handExtensionsMap.TryGetValue(hand, out ext);
+    }
+    
+    public static bool TryGet(int handId, out HandExtensions? ext)
+    {
+        ext = _handExtensionsMap.Values.FirstOrDefault(h => h._hand.id == handId);
+        return ext != null;
+    }
 
     private void Awake()
     {
@@ -57,49 +73,29 @@ public class HandExtensions : MonoBehaviour
             return;
         }
 
-        var keyBinds = IsLeft ? RHConfig.EmoteKeysLeft : RHConfig.EmoteKeysRight;
+        if (EmoteWheel.IsActive)
+            return;
 
-        foreach (var cosmetic in _hand.currentCosmetics)
+        var keyBind = IsLeft ? RHConfig.EmoteLeftKey.Value : RHConfig.EmoteRightKey.Value;
+        var keyBindAlt = IsLeft ? RHConfig.EmoteLeftKeyAlt.Value : RHConfig.EmoteRightKeyAlt.Value;
+        var handKeyBind = IsLeft ? KeyInteractLeft : KeyInteractRight;
+        var emote = IsLeft ? RHConfig.LeftEmote.Value : RHConfig.RightEmote.Value;
+
+        if (InputUtility.GetKeyDown(keyBind) || InputUtility.GetKeyDown(keyBindAlt))
         {
-            if (!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
-                continue;
-
-            if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count == 0)
-                continue;
-
-            for (int i = 0; i < Mathf.Min(pack.ExtendedCosmeticData.emotes.Count, RHConfig.MaxEmotes); i++)
-            {
-                if (keyBinds[i].Value == KeyCode.None) continue;
-                var emote = pack.ExtendedCosmeticData.emotes[i];
-                if (emote.Sprites.Count == 0) continue;
-
-                if (InputUtility.GetKeyDown(keyBinds[i].Value))
-                {
-                    if (RHConfig.EmoteToggles[i].Value && _currentEmote == emote)
-                    {
-                        StopEmote();
-                    }
-                    else
-                    {
-                        SetEmote(emote);
-                    }
-                    
-                    break;
-                }
-
-                if(InputUtility.GetKeyUp(keyBinds[i].Value) && !RHConfig.EmoteToggles[i].Value && _currentEmote == emote)
-                {
-                    StopEmote();
-                    break;
-                }
-            }
+            SetEmote(emote);
+            return;
         }
-    }
 
-    public static bool TryGet(ENT_Player.Hand? hand, out HandExtensions? ext)
-    {
-        ext = null;
-        return hand != null && _handExtensionsMap.TryGetValue(hand, out ext);
+        if((InputUtility.GetKeyUp(keyBind) || InputUtility.GetKeyUp(keyBindAlt)) && !RHConfig.ToggleEmotes.Value && _currentEmote != null)
+        {
+            StopEmote();
+        }
+
+        if (_currentEmote != null && InputManager.GetButton(handKeyBind).Up && !RHConfig.ToggleEmotes.Value)
+        {
+            StopEmote();
+        }
     }
 
     public void ApplySprite()
@@ -130,7 +126,14 @@ public class HandExtensions : MonoBehaviour
 
     public void SetEmote(EmoteEntry? emote, bool force = false)
     {
-        if (_currentEmote != null && !force || emote == null) return;
+        if (_currentEmote != null && !force && !RHConfig.ToggleEmotes.Value || emote == null) return;
+
+        if (_currentEmote == emote && RHConfig.ToggleEmotes.Value)
+        {
+            StopEmote();
+            return;
+        }
+        
         bool changedEmote = _currentEmote != emote;
 
         _currentEmote = emote;
@@ -141,6 +144,33 @@ public class HandExtensions : MonoBehaviour
 
         if (_currentEmote.PlayMode is EmotePlayMode.Loop or EmotePlayMode.Once)
             _emoteTime = Time.time;
+    }
+
+    public void SetEmote(int emoteIndex, bool force = false)
+    {
+        SetEmote(GetEmote(emoteIndex), force);
+    }
+
+    public EmoteEntry? GetEmote(int emoteIndex)
+    {
+        foreach (var cosmetic in _hand.currentCosmetics)
+        {
+            if (!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
+                continue;
+
+            if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count <= emoteIndex)
+                continue;
+            
+            if(pack.ExtendedCosmeticData.emotes[emoteIndex] == null)
+                continue;
+            
+            var emote = pack.ExtendedCosmeticData.emotes[emoteIndex];
+            if (emote.Sprites.Count == 0) continue;
+
+            return emote;
+        }
+
+        return null;
     }
 
     public void ApplyOffset()
