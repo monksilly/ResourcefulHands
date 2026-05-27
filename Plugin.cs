@@ -32,7 +32,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "monksilly.resourcefulhands";
     public const string Name = "Resourceful Hands";
-    public const string Version = "0.11.0";
+    public const string Version = "1.0.0";
 
     public const string DeprecatedRHGuid = "triggeredidiot.wkd.resourcefulhands";
     
