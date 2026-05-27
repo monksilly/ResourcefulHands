@@ -11,6 +11,7 @@ Thanks to all the amazing people who have helped make **Resourceful Hands** bett
 
 * **[notTamion](https://github.com/notTamion)**
 * **[Collin8000](https://github.com/Collin8000)**
+* **[Ikaiwa](https://github.com/Ikeiwa)** - Hand Emote Implementation
 
 ### Creator
 * **[triggered0idiot](https://github.com/triggered0idiot)**
