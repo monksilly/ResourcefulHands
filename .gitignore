@@ -3,7 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-/Libs/
 
 .idea
 *.DotSettings.*
@@ -11,3 +10,11 @@ riderModule.iml
 UserConfig.props
 /CHANGELOG.md
 /cliff.toml
+
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates

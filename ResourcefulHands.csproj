@@ -1,483 +1,734 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>monksilly.ResourcefulHands</AssemblyName>
+    <Product>Resourceful Hands</Product>
+    <Version>0.11.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>14.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <RootNamespace>ResourcefulHands</RootNamespace>
+    <WhiteKnuckleDir>Defined in ResourcefulHands.csproj.user!!</WhiteKnuckleDir> <!-- Ensure that this has BepInEx installed -->
+    <CopyToBepInExPluginsDir>true</CopyToBepInExPluginsDir>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <AssemblyName>monksilly.ResourcefulHands</AssemblyName>
-        <Product>Resourceful Hands</Product>
-        <Version>0.10.0</Version>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>latest</LangVersion>
-        <Nullable>enable</Nullable>
-        <IsPackable>false</IsPackable>
-        <RestoreAdditionalProjectSources>
-          https://api.nuget.org/v3/index.json;
-          https://nuget.bepinex.dev/v3/index.json;
-          https://nuget.samboy.dev/v3/index.json
-        </RestoreAdditionalProjectSources>
-        <RootNamespace>ResourcefulHands</RootNamespace>
-    </PropertyGroup>
+  <Import Project="Properties/DeployToPlugins.targets" />
+  <Import Project="UserConfig.props" Condition="Exists('UserConfig.props')" />
 
-    <Import Project="UserConfig.props" Condition="Exists('UserConfig.props')" />
-  
   <ItemGroup>
-      <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-      <PackageReference Include="BepInEx.Core" Version="5.*" />
-      <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-      <PackageReference Include="UnityEngine.Modules" Version="2022.3.32" IncludeAssets="compile" />
-    </ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" />
+  </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-    </ItemGroup>
-  
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <DebugType>full</DebugType>
-    </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Compile Remove="Libs\**" />
-    </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <EmbeddedResource Remove="Libs\**" />
-      <EmbeddedResource Include="rh_assets.bundle" />
-      <None Remove="rh_assets.bundle" />
-    </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ALINE">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/ALINE.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="andywiecko.BurstTriangulator">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/andywiecko.BurstTriangulator.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="AstarPathfindingProject">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/AstarPathfindingProject.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="BakeryRuntimeAssembly">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/BakeryRuntimeAssembly.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Clipper2Lib">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Clipper2Lib.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Coffee.SoftMaskForUGUI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Coffee.SoftMaskForUGUI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Coffee.SoftMaskForUGUI.R">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Coffee.SoftMaskForUGUI.R.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="DarkMachineUI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/DarkMachineUI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/DOTween.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Facepunch.Steamworks.Win64">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Facepunch.Steamworks.Win64.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Febucci.Attributes.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Febucci.Attributes.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Febucci.TextAnimator.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Febucci.TextAnimator.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Febucci.TextAnimator.TMP.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Febucci.TextAnimator.TMP.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="HarmonyXInterop">
+      <HintPath>$(WhiteKnuckleDir)Bepinex/HarmonyXInterop.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="ImuiBepInEx">
+      <HintPath>Libs\ImuiBepInEx.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="PackageTools">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/PackageTools.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Pathfinding.Ionic.Zip.Reduced">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="PrefabBaker">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/PrefabBaker.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="SeppePeelman.EditorTools.SurfaceAlignTool">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/SeppePeelman.EditorTools.SurfaceAlignTool.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Sirenix.OdinInspector.Attributes">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Sirenix.OdinInspector.Attributes.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Sirenix.Serialization">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Sirenix.Serialization.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Sirenix.Serialization.Config">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Sirenix.Serialization.Config.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Sirenix.Utilities">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Sirenix.Utilities.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Burst">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Burst.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Burst.Unsafe">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Burst.Unsafe.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Collections.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Collections.LowLevel.ILSupport">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Collections.LowLevel.ILSupport.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Deformations">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Deformations.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Entities">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Entities.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Entities.Hybrid">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Entities.Hybrid.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Entities.Hybrid.HybridComponents">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Entities.Hybrid.HybridComponents.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Entities.UI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Entities.UI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.InputSystem.ForUI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.InputSystem.ForUI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.InputSystem.InGameHints">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.InputSystem.InGameHints.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.InputSystem.RebindingUI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.InputSystem.RebindingUI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.InternalAPIEngineBridge.002">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.InternalAPIEngineBridge.002.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Mathematics.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Mathematics.Extensions.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions.Hybrid">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.MemoryProfiler">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.MemoryProfiler.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Postprocessing.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Postprocessing.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Profiling.Core">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Profiling.Core.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Scenes">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Scenes.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.ScriptableBuildPipeline.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Serialization">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Serialization.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Timeline.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Transforms">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Transforms.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.Transforms.Hybrid">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.Transforms.Hybrid.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Core">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.VisualScripting.Core.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Flow">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.VisualScripting.Flow.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.State">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/Unity.VisualScripting.State.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AccessibilityModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AIModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AndroidJNIModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ARModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ARModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ClothModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterInputModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ClusterInputModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterRendererModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ClusterRendererModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ContentLoadModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ContentLoadModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.CrashReportingModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.DirectorModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.DSPGraphModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.DSPGraphModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.GameCenterModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.GIModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.GIModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.GridModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.GridModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.HotReloadModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.HotReloadModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.InputModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.JSONSerializeModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.LocalizationModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.LocalizationModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.NVIDIAModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.NVIDIAModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.PerformanceReportingModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.Physics2DModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ProfilerModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ProfilerModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.PropertiesModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.PropertiesModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.SharedInternalsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.SharedInternalsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.SpriteMaskModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteShapeModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.SpriteShapeModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.StreamingModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.StreamingModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.SubstanceModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.SubstanceModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.SubsystemsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.SubsystemsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TerrainModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TerrainPhysicsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreFontEngineModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreTextEngineModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TextCoreTextEngineModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TilemapModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TilemapModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.TLSModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.TLSModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UmbraModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UmbraModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsCommonModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityAnalyticsCommonModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityAnalyticsModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityConnectModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityCurlModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityCurlModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityTestProtocolModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityTestProtocolModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.VehiclesModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.VFXModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.VideoModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.VirtualTexturingModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.VirtualTexturingModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.VRModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.VRModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.WindModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="UnityEngine.XRModule">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/UnityEngine.XRModule.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="WFowler1.BspImporter.Runtime">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/WFowler1.BspImporter.Runtime.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="WKLib">
+      <HintPath>Libs\WKLib.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="XNode">
+      <HintPath>$(WhiteKnuckleDir)White Knuckle_Data/Managed/XNode.dll</HintPath>
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
 
-    <ItemGroup>
-      <None Remove="Libs\**" />
-    </ItemGroup>
+    <Publicize Include="Assembly-CSharp"/>
+  </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="0Harmony">
-        <HintPath>Libs\Bepinex\0Harmony.dll</HintPath>
-      </Reference>
-      <Reference Include="ALINE">
-        <HintPath>Libs\ALINE.dll</HintPath>
-      </Reference>
-      <Reference Include="andywiecko.BurstTriangulator">
-        <HintPath>Libs\andywiecko.BurstTriangulator.dll</HintPath>
-      </Reference>
-      <Reference Include="Assembly-CSharp">
-        <HintPath>Libs\Assembly-CSharp.dll</HintPath>
-      </Reference>
-      <Reference Include="Assembly-CSharp-firstpass">
-        <HintPath>Libs\Assembly-CSharp-firstpass.dll</HintPath>
-      </Reference>
-      <Reference Include="AstarPathfindingProject">
-        <HintPath>Libs\AstarPathfindingProject.dll</HintPath>
-      </Reference>
-      <Reference Include="BakeryRuntimeAssembly">
-        <HintPath>Libs\BakeryRuntimeAssembly.dll</HintPath>
-      </Reference>
-      <Reference Include="BepInEx">
-        <HintPath>Libs\Bepinex\BepInEx.dll</HintPath>
-      </Reference>
-      <Reference Include="BepInEx.Harmony">
-        <HintPath>Libs\Bepinex\BepInEx.Harmony.dll</HintPath>
-      </Reference>
-      <Reference Include="BepInEx.Preloader">
-        <HintPath>Libs\Bepinex\BepInEx.Preloader.dll</HintPath>
-      </Reference>
-      <Reference Include="Clipper2Lib">
-        <HintPath>Libs\Clipper2Lib.dll</HintPath>
-      </Reference>
-      <Reference Include="Coffee.SoftMaskForUGUI">
-        <HintPath>Libs\Coffee.SoftMaskForUGUI.dll</HintPath>
-      </Reference>
-      <Reference Include="Coffee.SoftMaskForUGUI.R">
-        <HintPath>Libs\Coffee.SoftMaskForUGUI.R.dll</HintPath>
-      </Reference>
-      <Reference Include="DarkMachineUI">
-        <HintPath>Libs\DarkMachineUI.dll</HintPath>
-      </Reference>
-      <Reference Include="DOTween">
-        <HintPath>Libs\DOTween.dll</HintPath>
-      </Reference>
-      <Reference Include="Facepunch.Steamworks.Win64">
-        <HintPath>Libs\Facepunch.Steamworks.Win64.dll</HintPath>
-      </Reference>
-      <Reference Include="Febucci.Attributes.Runtime">
-        <HintPath>Libs\Febucci.Attributes.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="Febucci.TextAnimator.Runtime">
-        <HintPath>Libs\Febucci.TextAnimator.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="Febucci.TextAnimator.TMP.Runtime">
-        <HintPath>Libs\Febucci.TextAnimator.TMP.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="HarmonyXInterop">
-        <HintPath>Libs\Bepinex\HarmonyXInterop.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil">
-        <HintPath>Libs\Bepinex\Mono.Cecil.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Mdb">
-        <HintPath>Libs\Bepinex\Mono.Cecil.Mdb.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Pdb">
-        <HintPath>Libs\Bepinex\Mono.Cecil.Pdb.dll</HintPath>
-      </Reference>
-      <Reference Include="Mono.Cecil.Rocks">
-        <HintPath>Libs\Bepinex\Mono.Cecil.Rocks.dll</HintPath>
-      </Reference>
-      <Reference Include="MonoMod.RuntimeDetour">
-        <HintPath>Libs\Bepinex\MonoMod.RuntimeDetour.dll</HintPath>
-      </Reference>
-      <Reference Include="MonoMod.Utils">
-        <HintPath>Libs\Bepinex\MonoMod.Utils.dll</HintPath>
-      </Reference>
-      <Reference Include="Newtonsoft.Json">
-        <HintPath>Libs\Newtonsoft.Json.dll</HintPath>
-      </Reference>
-      <Reference Include="PackageTools">
-        <HintPath>Libs\PackageTools.dll</HintPath>
-      </Reference>
-      <Reference Include="Pathfinding.Ionic.Zip.Reduced">
-        <HintPath>Libs\Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
-      </Reference>
-      <Reference Include="PrefabBaker">
-        <HintPath>Libs\PrefabBaker.dll</HintPath>
-      </Reference>
-      <Reference Include="SeppePeelman.EditorTools.SurfaceAlignTool">
-        <HintPath>Libs\SeppePeelman.EditorTools.SurfaceAlignTool.dll</HintPath>
-      </Reference>
-      <Reference Include="Sirenix.OdinInspector.Attributes">
-        <HintPath>Libs\Sirenix.OdinInspector.Attributes.dll</HintPath>
-      </Reference>
-      <Reference Include="Sirenix.Serialization">
-        <HintPath>Libs\Sirenix.Serialization.dll</HintPath>
-      </Reference>
-      <Reference Include="Sirenix.Serialization.Config">
-        <HintPath>Libs\Sirenix.Serialization.Config.dll</HintPath>
-      </Reference>
-      <Reference Include="Sirenix.Utilities">
-        <HintPath>Libs\Sirenix.Utilities.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Burst">
-        <HintPath>Libs\Unity.Burst.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Burst.Unsafe">
-        <HintPath>Libs\Unity.Burst.Unsafe.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Collections">
-        <HintPath>Libs\Unity.Collections.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Collections.LowLevel.ILSupport">
-        <HintPath>Libs\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Deformations">
-        <HintPath>Libs\Unity.Deformations.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Entities">
-        <HintPath>Libs\Unity.Entities.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Entities.Hybrid">
-        <HintPath>Libs\Unity.Entities.Hybrid.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Entities.Hybrid.HybridComponents">
-        <HintPath>Libs\Unity.Entities.Hybrid.HybridComponents.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Entities.UI">
-        <HintPath>Libs\Unity.Entities.UI.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.InputSystem">
-        <HintPath>Libs\Unity.InputSystem.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.InputSystem.ForUI">
-        <HintPath>Libs\Unity.InputSystem.ForUI.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.InputSystem.InGameHints">
-        <HintPath>Libs\Unity.InputSystem.InGameHints.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.InputSystem.RebindingUI">
-        <HintPath>Libs\Unity.InputSystem.RebindingUI.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.InternalAPIEngineBridge.002">
-        <HintPath>Libs\Unity.InternalAPIEngineBridge.002.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Mathematics">
-        <HintPath>Libs\Unity.Mathematics.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Mathematics.Extensions">
-        <HintPath>Libs\Unity.Mathematics.Extensions.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Mathematics.Extensions.Hybrid">
-        <HintPath>Libs\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.MemoryProfiler">
-        <HintPath>Libs\Unity.MemoryProfiler.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Postprocessing.Runtime">
-        <HintPath>Libs\Unity.Postprocessing.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Profiling.Core">
-        <HintPath>Libs\Unity.Profiling.Core.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Scenes">
-        <HintPath>Libs\Unity.Scenes.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.ScriptableBuildPipeline">
-        <HintPath>Libs\Unity.ScriptableBuildPipeline.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Serialization">
-        <HintPath>Libs\Unity.Serialization.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.TextMeshPro">
-        <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Timeline">
-        <HintPath>Libs\Unity.Timeline.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Transforms">
-        <HintPath>Libs\Unity.Transforms.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Transforms.Hybrid">
-        <HintPath>Libs\Unity.Transforms.Hybrid.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
-        <HintPath>Libs\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.VisualScripting.Core">
-        <HintPath>Libs\Unity.VisualScripting.Core.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.VisualScripting.Flow">
-        <HintPath>Libs\Unity.VisualScripting.Flow.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.VisualScripting.State">
-        <HintPath>Libs\Unity.VisualScripting.State.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>Libs\UnityEngine.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AccessibilityModule">
-        <HintPath>Libs\UnityEngine.AccessibilityModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AIModule">
-        <HintPath>Libs\UnityEngine.AIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AndroidJNIModule">
-        <HintPath>Libs\UnityEngine.AndroidJNIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AnimationModule">
-        <HintPath>Libs\UnityEngine.AnimationModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ARModule">
-        <HintPath>Libs\UnityEngine.ARModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AssetBundleModule">
-        <HintPath>Libs\UnityEngine.AssetBundleModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AudioModule">
-        <HintPath>Libs\UnityEngine.AudioModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ClothModule">
-        <HintPath>Libs\UnityEngine.ClothModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ClusterInputModule">
-        <HintPath>Libs\UnityEngine.ClusterInputModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ClusterRendererModule">
-        <HintPath>Libs\UnityEngine.ClusterRendererModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ContentLoadModule">
-        <HintPath>Libs\UnityEngine.ContentLoadModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.CoreModule">
-        <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.CrashReportingModule">
-        <HintPath>Libs\UnityEngine.CrashReportingModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.DirectorModule">
-        <HintPath>Libs\UnityEngine.DirectorModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.DSPGraphModule">
-        <HintPath>Libs\UnityEngine.DSPGraphModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.GameCenterModule">
-        <HintPath>Libs\UnityEngine.GameCenterModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.GIModule">
-        <HintPath>Libs\UnityEngine.GIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.GridModule">
-        <HintPath>Libs\UnityEngine.GridModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.HotReloadModule">
-        <HintPath>Libs\UnityEngine.HotReloadModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ImageConversionModule">
-        <HintPath>Libs\UnityEngine.ImageConversionModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.IMGUIModule">
-        <HintPath>Libs\UnityEngine.IMGUIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule">
-        <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputModule">
-        <HintPath>Libs\UnityEngine.InputModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.JSONSerializeModule">
-        <HintPath>Libs\UnityEngine.JSONSerializeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.LocalizationModule">
-        <HintPath>Libs\UnityEngine.LocalizationModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.NVIDIAModule">
-        <HintPath>Libs\UnityEngine.NVIDIAModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ParticleSystemModule">
-        <HintPath>Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.PerformanceReportingModule">
-        <HintPath>Libs\UnityEngine.PerformanceReportingModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.Physics2DModule">
-        <HintPath>Libs\UnityEngine.Physics2DModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.PhysicsModule">
-        <HintPath>Libs\UnityEngine.PhysicsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ProfilerModule">
-        <HintPath>Libs\UnityEngine.ProfilerModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.PropertiesModule">
-        <HintPath>Libs\UnityEngine.PropertiesModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
-        <HintPath>Libs\UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ScreenCaptureModule">
-        <HintPath>Libs\UnityEngine.ScreenCaptureModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.SharedInternalsModule">
-        <HintPath>Libs\UnityEngine.SharedInternalsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.SpriteMaskModule">
-        <HintPath>Libs\UnityEngine.SpriteMaskModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.SpriteShapeModule">
-        <HintPath>Libs\UnityEngine.SpriteShapeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.StreamingModule">
-        <HintPath>Libs\UnityEngine.StreamingModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.SubstanceModule">
-        <HintPath>Libs\UnityEngine.SubstanceModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.SubsystemsModule">
-        <HintPath>Libs\UnityEngine.SubsystemsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TerrainModule">
-        <HintPath>Libs\UnityEngine.TerrainModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TerrainPhysicsModule">
-        <HintPath>Libs\UnityEngine.TerrainPhysicsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextCoreFontEngineModule">
-        <HintPath>Libs\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextCoreTextEngineModule">
-        <HintPath>Libs\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TextRenderingModule">
-        <HintPath>Libs\UnityEngine.TextRenderingModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TilemapModule">
-        <HintPath>Libs\UnityEngine.TilemapModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.TLSModule">
-        <HintPath>Libs\UnityEngine.TLSModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UI">
-        <HintPath>Libs\UnityEngine.UI.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsModule">
-        <HintPath>Libs\UnityEngine.UIElementsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIModule">
-        <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UmbraModule">
-        <HintPath>Libs\UnityEngine.UmbraModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityAnalyticsCommonModule">
-        <HintPath>Libs\UnityEngine.UnityAnalyticsCommonModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityAnalyticsModule">
-        <HintPath>Libs\UnityEngine.UnityAnalyticsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityConnectModule">
-        <HintPath>Libs\UnityEngine.UnityConnectModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityCurlModule">
-        <HintPath>Libs\UnityEngine.UnityCurlModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityTestProtocolModule">
-        <HintPath>Libs\UnityEngine.UnityTestProtocolModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-        <HintPath>Libs\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityWebRequestAudioModule">
-        <HintPath>Libs\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityWebRequestModule">
-        <HintPath>Libs\UnityEngine.UnityWebRequestModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityWebRequestTextureModule">
-        <HintPath>Libs\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-        <HintPath>Libs\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.VehiclesModule">
-        <HintPath>Libs\UnityEngine.VehiclesModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.VFXModule">
-        <HintPath>Libs\UnityEngine.VFXModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.VideoModule">
-        <HintPath>Libs\UnityEngine.VideoModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.VirtualTexturingModule">
-        <HintPath>Libs\UnityEngine.VirtualTexturingModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.VRModule">
-        <HintPath>Libs\UnityEngine.VRModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.WindModule">
-        <HintPath>Libs\UnityEngine.WindModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.XRModule">
-        <HintPath>Libs\UnityEngine.XRModule.dll</HintPath>
-      </Reference>
-      <Reference Include="WFowler1.BspImporter.Runtime">
-        <HintPath>Libs\WFowler1.BspImporter.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="XNode">
-        <HintPath>Libs\XNode.dll</HintPath>
-      </Reference>
-    </ItemGroup>
+  <ItemGroup>
+    <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
+    <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
+    <Content Include="ResourcefulHands.csproj.user" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
-      <Content Include=".github\ISSUE_TEMPLATE\feature_request.md" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Libs\" />
+  </ItemGroup>
 
-  <Target Name="CheckBepInExPath" BeforeTargets="PostBuild">
-    <Warning Condition="!Exists('$(BepInExPath)')" Text="BepInExPath is not set or invalid. Mod will not be copied to game folder. Check UserConfig.props!" />
-  </Target>
-  
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="Exists('$(BepInExPath)')">
-    <Message Text="Copying build to BepInEx plugins..." Importance="high" />
-    <Copy
-            SourceFiles="$(TargetPath)"
-            DestinationFolder="$(BepInExPath)"
-            SkipUnchangedFiles="true"
-    />
-  </Target>
-  
+  <ItemGroup>
+    <None Remove="EmbedResources\EmoteWheel\Wheel_0.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_0.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_1.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_1.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_2.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_2.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_3.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_3.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_4.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_4.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_5.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_5.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_6.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_6.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_7.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_7.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_8.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_8.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_9.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_9.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_Center.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_Center.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_Cursor.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_Cursor.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_HandBind.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_HandBind.png" />
+  </ItemGroup>
+
 </Project>
