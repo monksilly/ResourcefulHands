@@ -702,4 +702,33 @@
     <Folder Include="Libs\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="EmbedResources\EmoteWheel\Wheel_0.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_0.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_1.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_1.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_2.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_2.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_3.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_3.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_4.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_4.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_5.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_5.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_6.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_6.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_7.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_7.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_8.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_8.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_9.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_9.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_Center.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_Center.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_Cursor.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_Cursor.png" />
+    <None Remove="EmbedResources\EmoteWheel\Wheel_HandBind.png" />
+    <EmbeddedResource Include="EmbedResources\EmoteWheel\Wheel_HandBind.png" />
+  </ItemGroup>
+
 </Project>

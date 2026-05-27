@@ -9,13 +9,17 @@ using ResourcefulHands.Systems;
 using ResourcefulHands.UI;
 using ResourcefulHands.Utility;
 using UnityEngine;
+using WKLib.API.Audio;
 using WKLib.API.Input;
+using WKLib.Core.Classes;
+using Random = UnityEngine.Random;
 
 namespace ResourcefulHands.Patches;
 
 [HarmonyPatch]
 public class ResourcefulHandsPatches
 {
+
     [HarmonyPatch(typeof(CL_CosmeticManager))]
     public static class CL_CosmeticManager_Patches
     {
@@ -50,7 +54,7 @@ public class ResourcefulHandsPatches
 
                 if (extendedCosmeticHandItemData == null)
                     continue;
-                
+
                 LoadEmotesAssets(extendedCosmeticHandItemData, subdir);
                 PackManager.HandCosmeticExtendedData.Add(extendedCosmeticHandItemData.id, extendedCosmeticHandItemData);
             }
@@ -75,7 +79,7 @@ public class ResourcefulHandsPatches
                 }
             }
         }
-        
+
         private static void LoadEmotesAssets(ExtendedHandItemData handData, string subdir)
         {
             if (handData.emotes == null || handData.emotes.Count == 0)
@@ -87,20 +91,39 @@ public class ResourcefulHandsPatches
             {
                 var emote = handData.emotes[emoteIndex];
 
-                if (string.IsNullOrEmpty(emote.spriteName))
-                    continue;
+                // Loading Sprites
+                List<string> spritesToLoad = new List<string>();
+                if (!string.IsNullOrEmpty(emote.spriteName))
+                    spritesToLoad.Add(emote.spriteName);
+                if (emote.SpriteNames is { Count: > 0 })
+                    spritesToLoad.AddRange(emote.SpriteNames);
 
-                var emoteSprite = RuntimeSpriteImporter.LoadSpriteFromFile(
-                    Path.Combine(subdir, "Sprites", emote.spriteName + ".png"), linear: loadLinear);
-                emoteSprite.name = emote.spriteName;
-
-                emote.sprite = emoteSprite;
-
-                if (!string.IsNullOrEmpty(emote.Sound))
+                emote.Sprites = new List<Sprite>();
+                foreach (string spriteName in spritesToLoad)
                 {
+                    var newSprite = RuntimeSpriteImporter.LoadSpriteFromFile(
+                        Path.Combine(subdir, "Sprites", spriteName + ".png"), linear: loadLinear);
+                    newSprite.name = spriteName;
+                    emote.Sprites.Add(newSprite);
+                }
+
+                // Loading Sounds
+                List<string> soundsToLoad = new List<string>();
+                if (!string.IsNullOrEmpty(emote.Sound))
+                    soundsToLoad.Add(emote.Sound);
+                if (emote.SoundFiles is { Count: > 0 })
+                    soundsToLoad.AddRange(emote.SoundFiles);
+
+                emote.SoundClips = new List<AudioClip?>();
+                for (int clipIndex = 0; clipIndex < soundsToLoad.Count; clipIndex++)
+                {
+                    string soundFile = soundsToLoad[clipIndex];
+                    emote.SoundClips.Add(null);
+
+                    var index = clipIndex;
                     StaticCoroutine.Start(AudioUtils.LoadAudioClipFromFile(
-                        Path.Combine(subdir, "Sounds", emote.Sound + ".wav"),
-                        clip => { emote.SoundClip = clip; }));
+                        Path.Combine(subdir, "Sounds", soundFile + ".wav"),
+                        clip => { emote.SoundClips[index] = clip; }));
                 }
             }
         }
@@ -109,81 +132,85 @@ public class ResourcefulHandsPatches
     [HarmonyPatch(typeof(ENT_Player))]
     public static class ENT_Player_Patches
     {
-        private static bool[] playingEmotes;
-        
-        [HarmonyPostfix]
-        [HarmonyPatch("Awake")]
-        static void AwakePostfix(ENT_Player __instance)
-        {
-            playingEmotes = new bool[__instance.hands.Length];
-        }
-        
         [HarmonyPostfix]
         [HarmonyPatch("HandAnimation")]
         public static void HandAnimationPostfix(ENT_Player __instance, ENT_Player.Hand curhand, bool interacting,
             bool canInteract)
         {
-            ApplyEmotes(curhand, interacting, canInteract);
+            if(HandExtensions.TryGet(curhand, out var handExtension))
+                handExtension.ApplySprite();
+        }
+        
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ENT_Player.Awake))]
+        public static void AwakePostfix()
+        {
+            new GameObject("EmoteWheel").AddComponent<EmoteWheel>();
+        }
+    }
+
+    [HarmonyPatch(typeof(ViewSway))]
+    public static class ViewSway_Patches
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ViewSway.Start))]
+        static void StartPostfix(ViewSway __instance)
+        {
+            if(!HandExtensions.TryGet(__instance.hand, out var handExtension)) return;
+            handExtension.originalScale = __instance.hand.handModel.localScale;
+            if(handExtension.baseScaleFactor == Vector3.zero)
+                handExtension.baseScaleFactor = __instance.hand.handModel.localScale;
         }
 
-        private static void ApplyEmotes(ENT_Player.Hand hand, bool interacting, bool canInteract)
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(ViewSway.Update))]
+        static void UpdatePrefix(ViewSway __instance)
         {
-            if (interacting || !canInteract || !hand.IsFree())
-            {
-                if (playingEmotes[hand.id])
-                {
-                    hand.GetViewSway().targetOffset = Vector3.zero;
-                    playingEmotes[hand.id] = false;
-                    ModLogger.Debug("Stop Emote: Is Interacting");
-                }
+            if(!HandExtensions.TryGet(__instance.hand, out var handExtension)) return;
+            handExtension.originalOffset = __instance.targetOffset;
+            handExtension.originalRotation = __instance.swayRot;
 
-                return;
-            }
+            handExtension.ApplyOffset();
+        }
 
-            if (hand.currentCosmetics == null || hand.currentCosmetics.Count == 0)
-                return;
-
-            bool isLeft = hand.id == 0;
-            var keyBinds = isLeft ? RHConfig.EmoteKeysLeft : RHConfig.EmoteKeysRight;
-
-            foreach (var cosmetic in hand.currentCosmetics)
-            {
-                if(!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
-                    continue;
-
-                if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count == 0)
-                    continue;
-
-                bool playingEmote = false;
-                for (int i = 0; i < Mathf.Min(pack.ExtendedCosmeticData.emotes.Count, RHConfig.MaxEmotes); i++)
-                {
-                    if (keyBinds[i].Value == KeyCode.None) continue;
-                    if (!InputUtility.GetKeyDown(keyBinds[i].Value)) continue;
-
-                    var emote = pack.ExtendedCosmeticData.emotes[i];
-
-                    hand.SetSprite(emote.sprite);
-                    hand.GetViewSway().targetOffset =
-                        Vector3.Scale(emote.position, hand.handSprite.transform.localScale);
-
-                    if (emote.SoundClip && !playingEmotes[hand.id])
-                        AudioManager.PlaySound(emote.SoundClip, hand.handModel);
-
-                    playingEmotes[hand.id] = true;
-                    playingEmote = true;
-                    break;
-                }
-
-                if (!playingEmote)
-                {
-                    if (playingEmotes[hand.id])
-                    {
-                        hand.GetViewSway().targetOffset = Vector3.zero;
-                        playingEmotes[hand.id] = false;
-                        ModLogger.Debug("Stop Emote: Not Emoting");
-                    }
-                }
-            }
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ViewSway.Update))]
+        static void UpdatePostfix(ViewSway __instance)
+        {
+            if(!HandExtensions.TryGet(__instance.hand, out var handExtension)) return;
+            
+            handExtension.ApplyRotation();
+            
+            __instance.targetOffset = handExtension.originalOffset;
+            __instance.swayRot = handExtension.originalRotation;
+        }
+    }
+    
+    [HarmonyPatch(typeof(ENT_Player.Hand))]
+    public static class Hand_Patches
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ENT_Player.Hand.Initialize))]
+        static void InitializePost(ENT_Player.Hand __instance)
+        {
+            __instance.handBase.gameObject.AddComponent<HandExtensions>();
+        }
+        
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(ENT_Player.Hand.SetScale))]
+        static bool UpdatePrefix(ENT_Player.Hand __instance, Vector3 scale)
+        {
+            if(!HandExtensions.TryGet(__instance, out var handExtension)) return true;
+            handExtension.originalScale = scale;
+            return false;
+        }
+        
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(ENT_Player.Hand.ScaleUpdate))]
+        static void LateUpdatePost(ENT_Player.Hand __instance)
+        {
+            if(!HandExtensions.TryGet(__instance, out var handExtension)) return;
+            handExtension.ApplyScale();
         }
     }
 }
