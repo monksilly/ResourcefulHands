@@ -139,7 +139,7 @@ public class HandExtensions : MonoBehaviour
         _currentEmote = emote;
         if (changedEmote)
             _emoteAudioSource = AudioUtility.PlaySound(
-                GetEmoteSound(), _hand.handModel.position, _hand.handModel,
+                GetEmoteSound(), _hand.handModel.position, _hand.handModel, RHConfig.EmoteVolume.Value,
                 loop: _currentEmote.SoundLoop, bypassEffects: true, mixerType: AudioMixerType.Sfx);
 
         if (_currentEmote.PlayMode is EmotePlayMode.Loop or EmotePlayMode.Once)

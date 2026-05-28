@@ -38,6 +38,7 @@ public static class RHConfig
     public static ConfigEntry<bool> ToggleEmotes { get; private set; }
     public static ConfigEntry<int> LeftEmote { get; private set; }
     public static ConfigEntry<int> RightEmote { get; private set; }
+    public static ConfigEntry<float> EmoteVolume { get; private set; }
 
 
     // Config folder stuff
@@ -188,6 +189,8 @@ public static class RHConfig
         ModLogger.Debug("Bound Left Emote");
         RightEmote = Config.Bind("Emotes", "Right Emote", 0, new ConfigDescription(string.Empty, null, "Hidden"));
         ModLogger.Debug("Bound Right Emote");
+        EmoteVolume = Config.Bind("Emotes", "Emote Volume", 1.0f, new ConfigDescription(string.Empty, new AcceptableValueRange<float>(0,1)));
+        ModLogger.Debug("Bound Emote Volume");
         
         ModLogger.Debug("Checking generic folder...");
         if (!Directory.Exists(GenericFolder))
