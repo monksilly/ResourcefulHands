@@ -1,10 +1,16 @@
 using System.Collections;
+using System.Linq;
 using DG.Tweening;
 using ResourcefulHands.Core;
 using ResourcefulHands.EmbedResources;
+using ResourcefulHands.Utility;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using WKLib.API.Input;
+using WKLib.API.UI;
 
 namespace ResourcefulHands.Systems;
 
@@ -13,39 +19,58 @@ internal class EmoteWheel : MonoBehaviour
     private Canvas _canvas;
     private RawImage _centerButton;
     private RawImage[] _wheelButtons;
-    private Image[] _wheelEmotes;
+    private Image[] _wheelEmotesImages;
+    private string[] _wheelEmotes;
     private RawImage _cursor;
     private Image _emoteLeft;
     private Image _emoteRight;
 
     private Vector2 _cursorPos;
+    private int _currentPage;
+
     private static readonly Color ActiveColor = new Color(0.6981f, 0.1153f, 0.1153f, 1);
     private const string KeyInteractLeft = "Hand-Left";
     private const string KeyInteractRight = "Hand-Right";
+    private const int MaxEmotesPerPage = 10;
 
     private static bool _active;
     public static bool IsActive => _active;
-    
+
     private void Start()
     {
         if (!HandExtensions.TryGet(0, out var handExtensions))
             return;
         
+        var templateText = FindObjectsOfType<TMP_Text>(true).FirstOrDefault(t => t.font.name == "Ticketing SDF");
+        if(!templateText) return;
+
         // Build Wheel
         _canvas = gameObject.AddComponent<Canvas>();
         _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         _canvas.sortingOrder = -1;
         _canvas.enabled = false;
-        
+
+        gameObject.AddComponent<RawImage>().color = new Color(0, 0, 0, 0.8706f);
+
         var scaler = gameObject.AddComponent<CanvasScaler>();
         scaler.referenceResolution = new Vector2(400, 400);
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         
+        var topText = new GameObject("TopText", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        topText.transform.SetParent(_canvas.transform, false);
+        topText.transform.localPosition = new Vector3(0, 55, 0);
+        topText.font = templateText.font;
+        topText.fontSize = 5;
+        topText.alignment = TextAlignmentOptions.Center;
+        topText.color = new Color(1, 1, 1, 0.1647f);
+        topText.text = "Use <b>{c:/Mouse/scroll,a:Move}</b> to change page";
+        topText.AddComponent<InputTextReplace>();
+
         _centerButton = new GameObject("CenterButton", typeof(RectTransform)).AddComponent<RawImage>();
         _centerButton.transform.SetParent(_canvas.transform, false);
         _centerButton.texture = RHResources.TryGetTexture("EmoteWheel/Wheel_Center");
-        
-        var leftQuickEmoteBg = new GameObject("CenterButton", typeof(RectTransform)).AddComponent<RawImage>();
+
+        var leftQuickEmoteBg = new GameObject("LeftBind", typeof(RectTransform)).AddComponent<RawImage>();
         leftQuickEmoteBg.transform.SetParent(_canvas.transform, false);
         leftQuickEmoteBg.transform.localPosition = new Vector3(-100, 0, 0);
         leftQuickEmoteBg.texture = RHResources.TryGetTexture("EmoteWheel/Wheel_HandBind");
@@ -54,9 +79,19 @@ internal class EmoteWheel : MonoBehaviour
         _emoteLeft.enabled = false;
         var emoteLeftRect = _emoteLeft.transform as RectTransform;
         emoteLeftRect?.sizeDelta = new Vector2(30, 30);
-        UpdateEmoteSprite(0,RHConfig.LeftEmote.Value,_emoteLeft);
+        UpdateEmoteSprite(0, RHConfig.LeftEmote.Value, _emoteLeft);
+        
+        var leftText = new GameObject("LeftText", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        leftText.transform.SetParent(leftQuickEmoteBg.transform, false);
+        leftText.transform.localPosition = new Vector3(0, 25, 0);
+        leftText.font = templateText.font;
+        leftText.fontSize = 5;
+        leftText.alignment = TextAlignmentOptions.Center;
+        leftText.color = new Color(1, 1, 1, 0.1647f);
+        leftText.text = $"<b>{{k:{RHConfig.EmoteLeftKey.Value},k:{RHConfig.EmoteLeftKeyAlt.Value}}}</b> to bind";
+        leftText.AddComponent<InputTextReplace>();
 
-        var rightQuickEmoteBg = new GameObject("CenterButton", typeof(RectTransform)).AddComponent<RawImage>();
+        var rightQuickEmoteBg = new GameObject("RightBind", typeof(RectTransform)).AddComponent<RawImage>();
         rightQuickEmoteBg.transform.SetParent(_canvas.transform, false);
         rightQuickEmoteBg.transform.localPosition = new Vector3(100, 0, 0);
         rightQuickEmoteBg.texture = RHResources.TryGetTexture("EmoteWheel/Wheel_HandBind");
@@ -66,12 +101,23 @@ internal class EmoteWheel : MonoBehaviour
         var emoteRightRect = _emoteRight.transform as RectTransform;
         emoteRightRect?.sizeDelta = new Vector2(30, 30);
         emoteRightRect?.localScale = new Vector3(-1, 1, 1);
-        UpdateEmoteSprite(1,RHConfig.RightEmote.Value,_emoteRight);
+        UpdateEmoteSprite(1, RHConfig.RightEmote.Value, _emoteRight);
+        
+        var rightText = new GameObject("RightText", typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+        rightText.transform.SetParent(rightQuickEmoteBg.transform, false);
+        rightText.transform.localPosition = new Vector3(0, 25, 0);
+        rightText.font = templateText.font;
+        rightText.fontSize = 5;
+        rightText.alignment = TextAlignmentOptions.Center;
+        rightText.color = new Color(1, 1, 1, 0.1647f);
+        rightText.text = $"<b>{{k:{RHConfig.EmoteRightKey.Value},k:{RHConfig.EmoteRightKeyAlt.Value}}}</b> to bind";
+        rightText.AddComponent<InputTextReplace>();
 
-        _wheelButtons = new RawImage[RHConfig.MaxEmotes];
-        _wheelEmotes = new Image[RHConfig.MaxEmotes];
-        float angleStep = -(360.0f / RHConfig.MaxEmotes);
-        Vector3 emoteDir = Quaternion.Euler(0f, 0f, angleStep/2.0f) * Vector3.up;
+        _wheelButtons = new RawImage[MaxEmotesPerPage];
+        _wheelEmotesImages = new Image[MaxEmotesPerPage];
+        _wheelEmotes = new string[MaxEmotesPerPage];
+        float angleStep = -(360.0f / MaxEmotesPerPage);
+        Vector3 emoteDir = Quaternion.Euler(0f, 0f, angleStep / 2.0f) * Vector3.up;
         for (int i = 0; i < _wheelButtons.Length; i++)
         {
             var buttonName = $"Wheel_{i}";
@@ -80,26 +126,58 @@ internal class EmoteWheel : MonoBehaviour
             button.texture = RHResources.TryGetTexture($"EmoteWheel/{buttonName}");
             _wheelButtons[i] = button;
 
-            var emote = handExtensions?.GetEmote(i);
-            if (emote != null)
-            {
-                var emoteSprite = new GameObject($"Emote_{i}", typeof(RectTransform)).AddComponent<Image>();
-                emoteSprite.transform.SetParent(button.transform, false);
-                emoteSprite.sprite = emote.Sprites[0];
-                _wheelEmotes[i] = emoteSprite;
-                
-                var rectTransform = emoteSprite.transform as RectTransform;
-                rectTransform?.sizeDelta = new Vector2(20, 20);
-                rectTransform?.localPosition = emoteDir*35;
-            }
-                
+            var emoteSprite = new GameObject($"Emote_{i}", typeof(RectTransform)).AddComponent<Image>();
+            emoteSprite.transform.SetParent(button.transform, false);
+            emoteSprite.sprite = null;
+            emoteSprite.enabled = false;
+            _wheelEmotesImages[i] = emoteSprite;
+
+            var rectTransform = emoteSprite.transform as RectTransform;
+            rectTransform?.sizeDelta = new Vector2(20, 20);
+            rectTransform?.localPosition = emoteDir * 35;
+
             emoteDir = Quaternion.Euler(0f, 0f, angleStep) * emoteDir;
         }
-        
+
+        LoadPage(0);
+
         _cursor = new GameObject("Cursor", typeof(RectTransform)).AddComponent<RawImage>();
         _cursor.transform.SetParent(_canvas.transform, false);
         _cursor.transform.localScale = Vector3.one * 0.0625f;
         _cursor.texture = RHResources.TryGetTexture("EmoteWheel/Wheel_Cursor");
+    }
+
+    private void LoadPage(int page)
+    {
+        if (page < 0) return;
+
+        if (!HandExtensions.TryGet(0, out var handExtensions))
+            return;
+
+        int startIndex = page * MaxEmotesPerPage;
+
+        bool hasEmotes = false;
+        for (int i = 0; i < MaxEmotesPerPage; i++)
+        {
+            CosmeticHandPack? cosmetic = null;
+            var index = i + startIndex;
+            var emote = handExtensions?.GetEmote(index, out cosmetic);
+
+            if (emote == null || cosmetic == null)
+            {
+                if (i == 0) break;
+                _wheelEmotesImages[i].enabled = false;
+                continue;
+            }
+
+            hasEmotes = true;
+            _wheelEmotesImages[i].sprite = emote.Sprites[0];
+            _wheelEmotesImages[i].enabled = true;
+            _wheelEmotes[i] = cosmetic.CosmeticInfo.id + "/" + emote.id;
+        }
+
+        if (hasEmotes)
+            _currentPage = page;
     }
 
     private void Activate()
@@ -128,28 +206,49 @@ internal class EmoteWheel : MonoBehaviour
         // Wheel Toggle
         if (!_active)
         {
-            if(InputUtility.GetKeyDown(RHConfig.EmoteWheelKey.Value) || InputUtility.GetKeyDown(RHConfig.EmoteWheelKeyAlt.Value))
+            if (InputUtility.GetKeyDown(RHConfig.EmoteWheelKey.Value) ||
+                InputUtility.GetKeyDown(RHConfig.EmoteWheelKeyAlt.Value))
                 Activate();
             return;
         }
-        
+
         if (InputManager.IsGamepad())
+        {
             _cursorPos = InputManager.GetLookVector() * 1.5f;
+            
+            if (Gamepad.current.leftStick.left.wasPressedThisFrame)
+                LoadPage(_currentPage - 1);
+            else if (Gamepad.current.leftStick.right.wasPressedThisFrame)
+                LoadPage(_currentPage + 1);
+        }
         else
-            _cursorPos += InputManager.GetLookVector() * ((float)SettingsManager.settings.mouseSensitivity * 4f * Time.deltaTime);
-        
+        {
+            _cursorPos += InputManager.GetLookVector() *
+                          ((float)SettingsManager.settings.mouseSensitivity * 4f * Time.deltaTime);
+            
+            if(Mouse.current.scroll.down.value > 0)
+                LoadPage(_currentPage - 1);
+            else if(Mouse.current.scroll.up.value > 0)
+                LoadPage(_currentPage + 1);
+        }
+
         _cursorPos = Vector2.ClampMagnitude(_cursorPos, 1f);
-        _cursor.transform.localPosition = new Vector3(_cursorPos.x, _cursorPos.y, 0f)*32.0f;
+        _cursor.transform.localPosition = new Vector3(_cursorPos.x, _cursorPos.y, 0f) * 32.0f;
 
         bool isCenter = _cursorPos.magnitude < 0.6f;
         _centerButton.color = Color.Lerp(_centerButton.color, isCenter ? ActiveColor : Color.white, Time.deltaTime * 6);
-        
-        int emoteIndex = isCenter ? -1 : Mathf.FloorToInt((360-(Vector2.SignedAngle(Vector2.down, _cursorPos)+180))/36.0f) % _wheelButtons.Length;
+
+        int emoteIndex = isCenter
+            ? -1
+            : Mathf.FloorToInt((360 - (Vector2.SignedAngle(Vector2.down, _cursorPos) + 180)) / 36.0f) %
+              _wheelButtons.Length;
         for (int i = 0; i < _wheelButtons.Length; i++)
         {
             bool isHovered = !isCenter && emoteIndex == i;
-            _wheelButtons[i].color = Color.Lerp(_wheelButtons[i].color, isHovered ? ActiveColor : Color.white, Time.deltaTime * 6);
-            _wheelButtons[i].transform.localScale = Vector3.Lerp(_wheelButtons[i].transform.localScale, isHovered ? new Vector3(1.1f,1.1f,1.1f) : Vector3.one, Time.deltaTime * 6);
+            _wheelButtons[i].color = Color.Lerp(_wheelButtons[i].color, isHovered ? ActiveColor : Color.white,
+                Time.deltaTime * 6);
+            _wheelButtons[i].transform.localScale = Vector3.Lerp(_wheelButtons[i].transform.localScale,
+                isHovered ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one, Time.deltaTime * 6);
         }
 
         if (InputManager.GetButton(KeyInteractLeft).Down || InputManager.GetButton(KeyInteractRight).Down)
@@ -158,28 +257,33 @@ internal class EmoteWheel : MonoBehaviour
             Deactivate();
         }
 
-        if ((RHConfig.ToggleWheel.Value && (InputUtility.GetKeyDown(RHConfig.EmoteWheelKey.Value) || InputUtility.GetKeyDown(RHConfig.EmoteWheelKeyAlt.Value))) ||
-            (!RHConfig.ToggleWheel.Value && (InputUtility.GetKeyUp(RHConfig.EmoteWheelKey.Value) || InputUtility.GetKeyUp(RHConfig.EmoteWheelKeyAlt.Value))))
+        if ((RHConfig.ToggleWheel.Value && (InputUtility.GetKeyDown(RHConfig.EmoteWheelKey.Value) ||
+                                            InputUtility.GetKeyDown(RHConfig.EmoteWheelKeyAlt.Value))) ||
+            (!RHConfig.ToggleWheel.Value && (InputUtility.GetKeyUp(RHConfig.EmoteWheelKey.Value) ||
+                                             InputUtility.GetKeyUp(RHConfig.EmoteWheelKeyAlt.Value))))
         {
             Deactivate();
         }
 
-        if (!isCenter && (InputUtility.GetKeyUp(RHConfig.EmoteLeftKey.Value) || InputUtility.GetKeyUp(RHConfig.EmoteLeftKeyAlt.Value)))
+        if (!isCenter && (InputUtility.GetKeyUp(RHConfig.EmoteLeftKey.Value) ||
+                          InputUtility.GetKeyUp(RHConfig.EmoteLeftKeyAlt.Value)))
         {
-            RHConfig.LeftEmote.Value = emoteIndex;
-            UpdateEmoteSprite(0,RHConfig.LeftEmote.Value,_emoteLeft);
+            RHConfig.LeftEmote.Value = _wheelEmotes[emoteIndex];
+            UpdateEmoteSprite(0, RHConfig.LeftEmote.Value, _emoteLeft);
         }
-        if (!isCenter && (InputUtility.GetKeyUp(RHConfig.EmoteRightKey.Value) || InputUtility.GetKeyUp(RHConfig.EmoteRightKeyAlt.Value)))
+
+        if (!isCenter && (InputUtility.GetKeyUp(RHConfig.EmoteRightKey.Value) ||
+                          InputUtility.GetKeyUp(RHConfig.EmoteRightKeyAlt.Value)))
         {
-            RHConfig.RightEmote.Value = emoteIndex;
-            UpdateEmoteSprite(1,RHConfig.RightEmote.Value,_emoteRight);
+            RHConfig.RightEmote.Value = _wheelEmotes[emoteIndex];
+            UpdateEmoteSprite(1, RHConfig.RightEmote.Value, _emoteRight);
         }
     }
 
     IEnumerator CheckPressedEmotes(int emoteIndex)
     {
         yield return new WaitForSecondsRealtime(0.05f);
-        
+
         if (InputManager.GetButton(KeyInteractLeft).Pressed && HandExtensions.TryGet(0, out var handExtensionsLeft))
         {
             if (emoteIndex == -1)
@@ -187,7 +291,7 @@ internal class EmoteWheel : MonoBehaviour
             else
                 handExtensionsLeft?.SetEmote(emoteIndex);
         }
-        
+
         if (InputManager.GetButton(KeyInteractRight).Pressed && HandExtensions.TryGet(1, out var handExtensionsRight))
         {
             if (emoteIndex == -1)
@@ -196,13 +300,13 @@ internal class EmoteWheel : MonoBehaviour
                 handExtensionsRight?.SetEmote(emoteIndex);
         }
     }
-    
-    private void UpdateEmoteSprite(int handId, int emoteId, Image sprite)
+
+    private void UpdateEmoteSprite(int handId, string emoteId, Image sprite)
     {
         if (!HandExtensions.TryGet(handId, out var handExtensions))
             return;
-        
-        var emote = handExtensions?.GetEmote(emoteId);
+
+        var emote = handExtensions?.GetEmote(emoteId, out _);
         if (emote != null)
         {
             sprite.sprite = emote.Sprites[0];
