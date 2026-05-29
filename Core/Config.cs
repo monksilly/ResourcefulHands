@@ -19,6 +19,8 @@ public static class RHConfig
     public static ConfigEntry<bool>? UseOldSprReplace = null;
     // Don't load outdated packs
     public static ConfigEntry<bool>? UseOutdatedPacks = null;
+    // Expand vanilla audio overrides
+    public static ConfigEntry<bool>? ExpandVanillaAudioOverrides = null;
     
     // --- DEBUG STUFF ---
     // Colored console
@@ -149,6 +151,14 @@ public static class RHConfig
             $"When enabled packs that are made with an older pack-version/game-version won't be loaded."
         );
         ModLogger.Debug("Bound UseOutdatedPacks");
+        
+        ExpandVanillaAudioOverrides = Config.Bind(
+            "General",
+            "Expand vanilla audio overrides",
+            true,
+            $"When enabled allows vanilla voice cosmetics to modify more sounds outside of just player and movement sounds."
+        );
+        ModLogger.Debug("Bound ExpandVanillaAudioOverrides");
         
         // Debugging
         ColorConsole = Config.Bind(
