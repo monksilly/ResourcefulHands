@@ -38,8 +38,8 @@ public static class RHConfig
     public static ConfigEntry<KeyCode> EmoteRightKey { get; private set; }
     public static ConfigEntry<KeyCode> EmoteRightKeyAlt { get; private set; }
     public static ConfigEntry<bool> ToggleEmotes { get; private set; }
-    public static ConfigEntry<int> LeftEmote { get; private set; }
-    public static ConfigEntry<int> RightEmote { get; private set; }
+    public static ConfigEntry<string> LeftEmote { get; private set; }
+    public static ConfigEntry<string> RightEmote { get; private set; }
     public static ConfigEntry<float> EmoteVolume { get; private set; }
 
 
@@ -179,25 +179,25 @@ public static class RHConfig
         );
         ModLogger.Debug("Bound AlwaysDebug");
         
-        EmoteWheelKey = Config.Bind("Emotes", "Emote Wheel", KeyCode.None);
+        EmoteWheelKey = Config.Bind("Emotes", "Emote Wheel", KeyCode.None, new ConfigDescription(string.Empty, null, "InputKeyboard", "InputMouse"));
         ModLogger.Debug("Bound Emote Wheel");
-        EmoteWheelKeyAlt = Config.Bind("Emotes", "Emote Wheel Alt", KeyCode.None);
-        ModLogger.Debug("Bound Emote Wheel Alt");
+        EmoteWheelKeyAlt = Config.Bind("Emotes", "Emote Wheel Gamepad", KeyCode.None, new ConfigDescription(string.Empty, null, "InputGamepad"));
+        ModLogger.Debug("Bound Emote Wheel Gamepad");
         ToggleWheel = Config.Bind("Emotes", "Toggle Wheel", false);
         ModLogger.Debug("Bound Toggle Wheel");
-        EmoteLeftKey = Config.Bind("Emotes", "Emote Key Left", KeyCode.None);
+        EmoteLeftKey = Config.Bind("Emotes", "Emote Key Left", KeyCode.None, new ConfigDescription(string.Empty, null, "InputKeyboard", "InputMouse"));
         ModLogger.Debug("Bound Emote Key Left");
-        EmoteLeftKeyAlt = Config.Bind("Emotes", "Emote Key Left Alt", KeyCode.None);
-        ModLogger.Debug("Bound Emote Key Left Alt");
-        EmoteRightKey = Config.Bind("Emotes", "Emote Key Right", KeyCode.None);
+        EmoteLeftKeyAlt = Config.Bind("Emotes", "Emote Key Left Gamepad", KeyCode.None, new ConfigDescription(string.Empty, null, "InputGamepad"));
+        ModLogger.Debug("Bound Emote Key Left Gamepad");
+        EmoteRightKey = Config.Bind("Emotes", "Emote Key Right", KeyCode.None, new ConfigDescription(string.Empty, null, "InputKeyboard", "InputMouse"));
         ModLogger.Debug("Bound Emote Key Right");
-        EmoteRightKeyAlt = Config.Bind("Emotes", "Emote Key Right Alt", KeyCode.None);
-        ModLogger.Debug("Bound Emote Key Right Alt");
+        EmoteRightKeyAlt = Config.Bind("Emotes", "Emote Key Right Gamepad", KeyCode.None, new ConfigDescription(string.Empty, null, "InputGamepad"));
+        ModLogger.Debug("Bound Emote Key Right Gamepad");
         ToggleEmotes = Config.Bind("Emotes", "Toggle Emotes", false);
         ModLogger.Debug("Bound Toggle Emotes");
-        LeftEmote = Config.Bind("Emotes", "Left Emote", 0, new ConfigDescription(string.Empty, null, "Hidden"));
+        LeftEmote = Config.Bind("Emotes", "Left Emote", string.Empty, new ConfigDescription(string.Empty, null, "Hidden"));
         ModLogger.Debug("Bound Left Emote");
-        RightEmote = Config.Bind("Emotes", "Right Emote", 0, new ConfigDescription(string.Empty, null, "Hidden"));
+        RightEmote = Config.Bind("Emotes", "Right Emote", string.Empty, new ConfigDescription(string.Empty, null, "Hidden"));
         ModLogger.Debug("Bound Right Emote");
         EmoteVolume = Config.Bind("Emotes", "Emote Volume", 1.0f, new ConfigDescription(string.Empty, new AcceptableValueRange<float>(0,1)));
         ModLogger.Debug("Bound Emote Volume");

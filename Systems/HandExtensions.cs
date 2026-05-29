@@ -148,26 +148,87 @@ public class HandExtensions : MonoBehaviour
 
     public void SetEmote(int emoteIndex, bool force = false)
     {
-        SetEmote(GetEmote(emoteIndex), force);
+        SetEmote(GetEmote(emoteIndex, out _), force);
+    }
+    
+    public void SetEmote(string emoteId, bool force = false)
+    {
+        SetEmote(GetEmote(emoteId, out _), force);
     }
 
-    public EmoteEntry? GetEmote(int emoteIndex)
+    public EmoteEntry? GetEmote(int emoteIndex, out CosmeticHandPack? cosmetic)
     {
-        foreach (var cosmetic in _hand.currentCosmetics)
-        {
-            if (!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
-                continue;
+        cosmetic = null;
 
+        int index = 0;
+        foreach (var handCurrentCosmetic in _hand.currentCosmetics)
+        {
+            if (!PackManager.HandCosmeticPacksDict.TryGetValue(handCurrentCosmetic.cosmeticInfo.id, out var pack))
+                return null;
+            
             if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count <= emoteIndex)
                 continue;
             
             if(pack.ExtendedCosmeticData.emotes[emoteIndex] == null)
                 continue;
-            
-            var emote = pack.ExtendedCosmeticData.emotes[emoteIndex];
-            if (emote.Sprites.Count == 0) continue;
 
+            foreach (var emoteEntry in pack.ExtendedCosmeticData.emotes)
+            {
+                if (index == emoteIndex)
+                {
+                    if (emoteEntry.Sprites.Count == 0) return null;
+
+                    cosmetic = pack;
+                    return emoteEntry;
+                }
+
+                index++;
+            }
+        }
+
+        cosmetic = null;
+        return null;
+    }
+    
+    public EmoteEntry? GetEmote(string id, out CosmeticHandPack? cosmetic)
+    {
+        cosmetic = null;
+        if (string.IsNullOrEmpty(id))
+            return null;
+        
+        bool isFullId = id.Contains("/");
+
+        if (isFullId)
+        {
+            var cosmeticId = id.Substring(0, id.IndexOf("/", StringComparison.Ordinal));
+            var emoteId = id.Substring(id.IndexOf("/", StringComparison.Ordinal) + 1);
+            
+            var handCurrentCosmetic = _hand.currentCosmetics.FirstOrDefault(x => x.cosmeticInfo.id == cosmeticId);
+            
+            if (!handCurrentCosmetic || !PackManager.HandCosmeticPacksDict.TryGetValue(handCurrentCosmetic.cosmeticInfo.id, out var pack))
+                return null;
+
+            var emote = pack?.ExtendedCosmeticData?.emotes?.FirstOrDefault(e => e.id == emoteId && e.Sprites.Count > 0);
+            
+            if(emote == null) return null;
+
+            cosmetic = pack;
             return emote;
+        }
+        else
+        {
+            foreach (var handCurrentCosmetic in _hand.currentCosmetics)
+            {
+                if (!handCurrentCosmetic || !PackManager.HandCosmeticPacksDict.TryGetValue(handCurrentCosmetic.cosmeticInfo.id, out var pack))
+                    return null;
+                
+                var emote = pack?.ExtendedCosmeticData?.emotes?.FirstOrDefault(e => e.id == id && e.Sprites.Count > 0);
+
+                if(emote == null) return null;
+                
+                cosmetic = pack;
+                return emote;
+            }
         }
 
         return null;
