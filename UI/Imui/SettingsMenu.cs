@@ -23,6 +23,7 @@ public class SettingsMenu : WKLibWindow
         UIUtility.DrawConfigEntry(gui, LazyManip);
         UIUtility.DrawConfigEntry(gui, UseOldSprReplace);
         UIUtility.DrawConfigEntry(gui, UseOutdatedPacks);
+        UIUtility.DrawConfigEntry(gui, ExpandVanillaAudioOverrides);
         
         gui.AddSpacing();
         gui.Separator("Emotes");
