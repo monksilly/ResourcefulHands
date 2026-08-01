@@ -36,8 +36,8 @@ public class ResourcefulHandsPatches
         [HarmonyPatch("ScanForCosmetics")]
         public static void ScanForCosmeticsPostfix()
         {
-            PackManager.ScanCosmeticsAtPluginsFolder(); // First we add the cosmetics to the base game
-            PackManager.GatherCosmetics(); // Then we register all the cosmetics
+            CosmeticManager.ScanCosmeticsAtPluginsFolder(); // First we add the cosmetics to the base game
+            CosmeticManager.GatherCosmetics(); // Then we register all the cosmetics
         }
 
         [HarmonyPostfix]
@@ -56,7 +56,7 @@ public class ResourcefulHandsPatches
                     continue;
 
                 LoadEmotesAssets(extendedCosmeticHandItemData, subdir);
-                PackManager.HandCosmeticExtendedData.Add(extendedCosmeticHandItemData.id, extendedCosmeticHandItemData);
+                CosmeticManager.HandCosmeticExtendedData.Add(extendedCosmeticHandItemData.id, extendedCosmeticHandItemData);
             }
         }
 

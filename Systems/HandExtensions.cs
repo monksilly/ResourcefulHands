@@ -155,7 +155,7 @@ public class HandExtensions : MonoBehaviour
     {
         foreach (var cosmetic in _hand.currentCosmetics)
         {
-            if (!PackManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
+            if (!CosmeticManager.HandCosmeticPacksDict.TryGetValue(cosmetic.cosmeticData.id, out var pack))
                 continue;
 
             if (pack.ExtendedCosmeticData.emotes == null || pack.ExtendedCosmeticData.emotes.Count <= emoteIndex)

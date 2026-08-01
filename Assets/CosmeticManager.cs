@@ -11,7 +11,7 @@ using WKLib.API;
 
 namespace ResourcefulHands.Assets;
 
-public static class PackManager
+public static class CosmeticManager
 {
     public static List<CosmeticHandPack> ActiveHandPacks { get; private set; }
 
@@ -260,11 +260,6 @@ public static class PackManager
     public static bool IncludesPack(CosmeticHandPack handPack) => _handCosmetics.Contains(handPack);
 
     public static List<CosmeticHandPack> GetHandPacks() => _handCosmetics;
-
-    public static void ShowPopup(string text, float timeToShow)
-    {
-        WKLib.API.UI.UIUtility.ShowPopupForTime(text, timeToShow);
-    }
     
     public static Texture2D? LoadTextureFromFile(string filePath)
     {
