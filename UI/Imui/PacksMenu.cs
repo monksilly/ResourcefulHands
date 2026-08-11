@@ -123,7 +123,12 @@ public class PacksMenu : WKLibWindow
             var isGridHovered = gui.IsGroupHovered(gridId);
 
             if (isGridHovered)
+            {
                 gui.Canvas.RectOutline(gridRect, gui.Style.Button.Normal.BorderColor, 2f, 2f);
+                var description = TextUtils.InsertLineBreaks(loadedPack.desc, 40);
+                if (description != string.Empty)
+                    gui.Tooltip(description, gui.Input.MousePosition + gui.Style.Tooltip.OffsetPixels / gui.Canvas.ScreenScale);
+            }
 
             var cellWidth = gridRect.W;
             
@@ -135,7 +140,7 @@ public class PacksMenu : WKLibWindow
 
             var titleRect = DrawTitle(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
             var authorRect = DrawAuthor(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
-            var descriptionRect = DrawDescription(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
+            //var descriptionRect = DrawDescription(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
             
             cellWidth -= (titleRect.W + spacing);
             if (cellWidth <= 0f)
@@ -299,7 +304,12 @@ public class PacksMenu : WKLibWindow
             var isGridHovered = gui.IsGroupHovered(gridId);
 
             if (isGridHovered)
+            {
                 gui.Canvas.RectOutline(gridRect, gui.Style.Button.Normal.BorderColor, 2f, 2f);
+                var description = TextUtils.InsertLineBreaks(loadedPack.desc, 40);
+                if (description != string.Empty)
+                    gui.Tooltip(description, gui.Input.MousePosition + gui.Style.Tooltip.OffsetPixels / gui.Canvas.ScreenScale);
+            }
 
             var cellWidth = gridRect.W;
             
@@ -311,7 +321,7 @@ public class PacksMenu : WKLibWindow
 
             var titleRect = DrawTitle(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
             var authorRect = DrawAuthor(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
-            var descriptionRect = DrawDescription(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
+            //var descriptionRect = DrawDescription(gui, loadedPack, gridRect, iconRect, cellHeight, cellWidth);
             
             cellWidth -= (titleRect.W + spacing);
             if (cellWidth <= 0f)
