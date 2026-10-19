@@ -63,16 +63,23 @@ internal class CoroutineDispatcher : MonoBehaviour
     /// <param name="action"></param>
     /// <param name="lineNumber"></param>
     /// <param name="file"></param>
-    public static async Task RunOnMainThreadAndWait(Action action,
+    public static async Task RunOnMainThreadAndWait(
+#if DEBUG
+        Action action,
         [CallerLineNumber] int lineNumber = 0,
         [CallerFilePath] string file = "")
+#else 
+        Action action)
+#endif
     {
         bool hasRan = false;
         lock (threadQueue)
         {
             threadQueue.Enqueue(() =>
             {
+#if DEBUG
                 ModLogger.Debug($"Running [{Path.GetFileName(file)}:{lineNumber}] on the main thread...");
+#endif
                 try
                 {
                     action();
@@ -92,9 +99,11 @@ internal class CoroutineDispatcher : MonoBehaviour
         // wait at around the speed of the current fps  
         // this isn't the exact fps because it would be overkill
         while (!hasRan)
-            await Task.Delay(Mathf.FloorToInt((1.0f/fps)*1000)); 
+            await Task.Delay(Mathf.FloorToInt((1.0f/fps)*1000));
         
+#if DEBUG
         ModLogger.Debug($"[{Path.GetFileName(file)}:{lineNumber}] has executed!");
+#endif
     }
     
     /// <summary>
