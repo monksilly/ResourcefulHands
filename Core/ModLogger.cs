@@ -21,7 +21,7 @@ public static class ModLogger
         [CallerLineNumber] int lineNumber = 0,
         [CallerFilePath] string file = "")
     {
-        CoroutineDispatcher.RunOnMainThreadOrCurrent(() => Log.LogInfo($"[{Path.GetFileName(file)}:{lineNumber}] {data}"));
+        CoroutineDispatcher.RunOnMainThreadOrCurrent(() => Log.LogDebug($"[{Path.GetFileName(file)}:{lineNumber}] {data}"));
     }
 
     public static void Info(object data,

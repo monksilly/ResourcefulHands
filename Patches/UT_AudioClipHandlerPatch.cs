@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using ResourcefulHands.Core;
@@ -49,7 +50,7 @@ public class UT_AudioClipHandlerPatch
 	        
 	        foreach (var audioSet in cosmetic_Voice.cosmeticData.clipHandlerOverride.setOverrides)
 	        {
-		        if (__instance.groupDictionary.ContainsKey(audioSet.groupName))
+		        if (__instance.groupDictionary.ContainsKey(DarkMachineFunctions.HashString((ReadOnlySpan<char>) audioSet.groupName)))
 		        {
 				    ModLogger.Debug(__instance.gameObject.name + ": Added audio override " + $"{audioSet.groupName}:{audioSet.setName}");
 			        newClipHandlerOverride.setOverrides.Add(audioSet);
